@@ -93,6 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentFrase = { pt: '', en: '' };
   let botPlayers = [];
 
+  const successSound = new Audio('gamesounds/success.mp3');
+
   const fraseEl = document.getElementById('versus-phrase');
   let userImg = null;
   let botImg = null;
@@ -297,9 +299,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (correto) {
       acertos++;
       flashColor('#40e0d0');
+      successSound.currentTime = 0;
+      successSound.play();
     } else {
       flashColor('red');
     }
+    // Versus mode continues regardless of errors; no game over after mistakes
     const gameElapsed = Date.now() - startGameTime;
     versusLogs.push({
       phrasePT: currentFrase.pt,
