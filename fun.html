@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fun</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-mode">
+  <nav id="top-nav">
+    <a href="index.html">home</a>
+    <a href="fun.html">fun</a>
+    <a href="play.html">play</a>
+    <a href="custom.html">custom</a>
+    <a href="versus.html">versus</a>
+  </nav>
+  <div id="fun-content" style="text-align:center;margin-top:50px;"></div>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const container = document.getElementById('fun-content');
+      const resp = await fetch('users/bots.json');
+      const data = await resp.json();
+      const entries = data.bots.map(b => {
+        const modes = Object.values(b.modes);
+        const avgAcc = modes.reduce((s, m) => s + m.precisao, 0) / modes.length;
+        const avgTempo = modes.reduce((s, m) => s + m.tempo, 0) / modes.length;
+        const score = (avgAcc + avgTempo) / 2;
+        return { name: b.name, score };
+      });
+      const vsStats = JSON.parse(localStorage.getItem('versusStats') || '{}');
+      const userAcc = parseFloat(vsStats.accuracy) || 0;
+      const userTempo = parseFloat(vsStats.speed) || 0;
+      const userScore = (userAcc + userTempo) / 2;
+      entries.push({ name: 'Você', score: userScore });
+      entries.sort((a, b) => b.score - a.score);
+      const table = document.createElement('table');
+      table.className = 'ranking-table';
+      const header = document.createElement('tr');
+      header.innerHTML = '<th>Posição</th><th>Jogador</th><th>Score</th>';
+      table.appendChild(header);
+      entries.forEach((e, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${idx + 1}</td><td>${e.name}</td><td>${e.score.toFixed(2)}</td>`;
+        table.appendChild(tr);
+      });
+      container.appendChild(table);
+    });
+  </script>
+</body>
+</html>
