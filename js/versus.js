@@ -99,6 +99,24 @@ document.addEventListener('DOMContentLoaded', () => {
   let userImg = null;
   let botImg = null;
 
+  function applyTheme() {
+    fraseEl.style.color = document.body.classList.contains('versus-white') ? '#555' : '#fff';
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle('versus-white');
+    document.body.classList.toggle('versus-blue');
+    applyTheme();
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'h') {
+      toggleTheme();
+    }
+  });
+
+  applyTheme();
+
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     reconhecimento = new SpeechRecognition();
@@ -178,7 +196,6 @@ document.addEventListener('DOMContentLoaded', () => {
     userDiv.className = 'player';
     userDiv.id = 'player-user';
     userDiv.innerHTML = `
-      <div class="player-name">the user</div>
       <img src="users/theuser.png" alt="the user" class="player-img" style="width:${imgSize}px;height:${imgSize}px;">
       <div class="stat-bar time" style="width:${barWidth}px"><div class="fill"></div></div>
       <div class="stat-bar acc" style="width:${barWidth}px"><div class="fill"></div></div>
@@ -195,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
         div.className = 'player';
         div.id = `bot-${idx}`;
         div.innerHTML = `
-          <div class="player-name">${entry.b.name}</div>
           <img src="users/${entry.b.file}" alt="${entry.b.name}" class="player-img" style="width:120px;height:120px;">
           <div class="stat-bar time" style="width:120px"><div class="fill"></div></div>
           <div class="stat-bar acc" style="width:120px"><div class="fill"></div></div>
@@ -210,7 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
       div.className = 'player';
       div.id = 'player-bot';
       div.innerHTML = `
-        <div class="player-name" id="bot-name">${botAtual.name}</div>
         <img id="bot-avatar" class="player-img" src="users/${botAtual.file}" alt="adversario" style="width:150px;height:150px;">
         <div class="stat-bar time"><div class="fill"></div></div>
         <div class="stat-bar acc"><div class="fill"></div></div>
@@ -242,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fraseEl.style.transition = 'none';
     fraseEl.style.opacity = 0;
     fraseEl.style.fontSize = '40px';
-    fraseEl.style.color = '#fff';
+    applyTheme();
     fraseEl.textContent = pt;
     esperado = en.toLowerCase();
     if (modoAtual === 5) {
@@ -265,7 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fraseEl.style.transition = 'color 500ms';
     fraseEl.style.color = cor;
     setTimeout(() => {
-      fraseEl.style.color = '#fff';
+      applyTheme();
     }, 500);
   }
 

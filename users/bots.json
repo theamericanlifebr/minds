@@ -65,6 +65,39 @@
         "5": {"precisao": 98, "tempo": 99},
         "6": {"precisao": 100, "tempo": 100}
       }
+    },
+    {
+      "name": "Pablo",
+      "file": "pablo.png",
+      "modes": {
+        "2": {"precisao": 48, "tempo": 65},
+        "3": {"precisao": 50, "tempo": 70},
+        "4": {"precisao": 47, "tempo": 75},
+        "5": {"precisao": 76, "tempo": 70},
+        "6": {"precisao": 45, "tempo": 70}
+      }
+    },
+    {
+      "name": "Tim",
+      "file": "tim.png",
+      "modes": {
+        "2": {"precisao": 77, "tempo": 80},
+        "3": {"precisao": 79, "tempo": 78},
+        "4": {"precisao": 75, "tempo": 70},
+        "5": {"precisao": 74, "tempo": 75},
+        "6": {"precisao": 76, "tempo": 81}
+      }
+    },
+    {
+      "name": "Kim",
+      "file": "kim.png",
+      "modes": {
+        "2": {"precisao": 96, "tempo": 96},
+        "3": {"precisao": 95, "tempo": 94},
+        "4": {"precisao": 94, "tempo": 95},
+        "5": {"precisao": 93, "tempo": 97},
+        "6": {"precisao": 95, "tempo": 96}
+      }
     }
   ]
 }
