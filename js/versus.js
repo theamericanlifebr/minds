@@ -50,6 +50,28 @@ function colorFromPercent(perc) {
   return calcularCor((perc / 100) * max);
 }
 
+let frasesCorretas = {};
+
+async function carregarFrasesCorretas() {
+  try {
+    const resp = await fetch('data/frases_corretas.json');
+    frasesCorretas = await resp.json();
+  } catch (e) {
+    frasesCorretas = {};
+  }
+}
+
+function aplicarFrasesCorretas(texto) {
+  let t = texto.toLowerCase();
+  for (const [correta, variantes] of Object.entries(frasesCorretas)) {
+    variantes.forEach(v => {
+      const re = new RegExp(`\\b${v}\\b`, 'g');
+      t = t.replace(re, correta);
+    });
+  }
+  return t;
+}
+
 async function carregarPastas() {
   const resp = await fetch('data/pastasversus.json');
   const data = await resp.json();
@@ -123,6 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme();
   }
 
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
   document.addEventListener('keydown', (e) => {
     if (e.key.toLowerCase() === 'h') {
       toggleTheme();
@@ -174,6 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modo === 3) {
       botAtual = botsData[Math.floor(Math.random() * botsData.length)];
       showConnecting(() => initGame());
+    } else if (modo === 1) {
+      botAtual = null;
+      initGame();
     } else {
       botAtual = bot;
       initGame();
@@ -200,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function initGame() {
+    await carregarFrasesCorretas();
     const game = document.getElementById('versus-game');
     game.style.display = 'block';
     startGameTime = Date.now();
@@ -208,8 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
     botPlayers = [];
     const playersDiv = document.getElementById('players');
     playersDiv.innerHTML = '';
-    const imgSize = modoAtual === 2 ? 120 : 150;
-    const barWidth = modoAtual === 2 ? 120 : 200;
+    const multi = modoAtual === 2 || modoAtual === 1;
+    const imgSize = multi ? 120 : 150;
+    const barWidth = multi ? 120 : 200;
     const userDiv = document.createElement('div');
     userDiv.className = 'player';
     userDiv.id = 'player-user';
@@ -219,8 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="stat-bar time" style="width:${barWidth}px"><div class="fill"></div></div>
       <div class="stat-bar acc" style="width:${barWidth}px"><div class="fill"></div></div>
     `;
-    if (modoAtual === 2) {
-      const escolha = [...botsData].sort(() => Math.random() - 0.5).slice(0, 3);
+    if (multi) {
+      const numBots = modoAtual === 1 ? 9 : 3;
+      const escolha = [...botsData].sort(() => Math.random() - 0.5).slice(0, numBots);
       const ordered = escolha.map(b => {
         const stats = b.modes[String(modoAtual)] || { precisao: 0, tempo: 0 };
         const score = (stats.precisao + stats.tempo) / 2;
@@ -231,10 +263,10 @@ document.addEventListener('DOMContentLoaded', () => {
         div.className = 'player';
         div.id = `bot-${idx}`;
         div.innerHTML = `
-          <img src="users/${entry.b.file}" alt="${entry.b.name}" class="player-img" style="width:120px;height:120px;">
+          <img src="users/${entry.b.file}" alt="${entry.b.name}" class="player-img" style="width:${imgSize}px;height:${imgSize}px;">
           <div class="player-name">${entry.b.name}</div>
-          <div class="stat-bar time" style="width:120px"><div class="fill"></div></div>
-          <div class="stat-bar acc" style="width:120px"><div class="fill"></div></div>
+          <div class="stat-bar time" style="width:${barWidth}px"><div class="fill"></div></div>
+          <div class="stat-bar acc" style="width:${barWidth}px"><div class="fill"></div></div>
         `;
         playersDiv.appendChild(div);
         botPlayers.push({ element: div, img: div.querySelector('.player-img'), nameEl: div.querySelector('.player-name'), name: entry.b.name, stats: entry.stats, acc: 0, tempo: 0 });
@@ -281,7 +313,8 @@ document.addEventListener('DOMContentLoaded', () => {
     fraseEl.style.opacity = 0;
     fraseEl.style.fontSize = '40px';
     applyTheme();
-    fraseEl.textContent = pt;
+    const displayText = modoAtual === 3 ? en : pt;
+    fraseEl.textContent = capitalize(displayText);
     esperado = en.toLowerCase();
     if (modoAtual === 5) {
       const utter = new SpeechSynthesisUtterance(en);
@@ -322,6 +355,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function fraseCorreta(resp, esperado) {
+    resp = aplicarFrasesCorretas(resp);
+    esperado = aplicarFrasesCorretas(esperado);
     const respWords = resp.trim().split(/\s+/);
     const expWords = esperado.trim().split(/\s+/);
     if (respWords.length < expWords.length) return false;
@@ -354,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       flashColor('red');
       const old = fraseEl.textContent;
-      fraseEl.textContent = currentFrase.en;
+      fraseEl.textContent = capitalize(currentFrase.en);
       setTimeout(() => { fraseEl.textContent = old; }, 1000);
     }
     // Versus mode continues regardless of errors; no game over after mistakes
@@ -391,8 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setBar(document.querySelector('#player-user .time .fill'), userTimePerc);
     setBar(document.querySelector('#player-user .acc .fill'), userAccPerc);
     const userScore = (userAccPerc + userTimePerc) / 2;
-    if (userNameEl) userNameEl.style.backgroundColor = colorFromPercent(userScore);
-    if (modoAtual === 2) {
+    if (modoAtual === 2 || modoAtual === 1) {
       botPlayers.forEach(bp => {
         const acc = vary(bp.stats.precisao);
         const tempo = vary(bp.stats.tempo);
@@ -400,23 +434,33 @@ document.addEventListener('DOMContentLoaded', () => {
         bp.tempo = tempo;
         setBar(bp.element.querySelector('.time .fill'), tempo);
         setBar(bp.element.querySelector('.acc .fill'), acc);
-        if (bp.nameEl) bp.nameEl.style.backgroundColor = colorFromPercent((acc + tempo) / 2);
       });
-      const playersDiv = document.getElementById('players');
       const entries = [
         { element: document.getElementById('player-user'), name: 'Você', score: userScore },
         ...botPlayers.map(bp => ({ element: bp.element, name: bp.name, score: (bp.acc + bp.tempo) / 2 }))
       ];
       const ordered = entries.slice().sort((a, b) => b.score - a.score);
-      const current = Array.from(playersDiv.children);
-      const newOrder = ordered.map(e => e.element);
-      const changed = newOrder.some((el, idx) => el !== current[idx]);
-      if (changed) {
-        current.forEach(el => { el.style.transition = 'opacity 0.5s'; el.style.opacity = '0'; });
-        setTimeout(() => {
-          ordered.forEach(o => playersDiv.appendChild(o.element));
-          ordered.forEach(o => { o.element.style.opacity = '1'; });
-        }, 500);
+      if (modoAtual === 1) {
+        const userIdx = ordered.findIndex(o => o.name === 'Você');
+        let startIdx = 0;
+        if (userIdx >= 4 && userIdx <= 7) startIdx = 4;
+        else if (userIdx >= 8) startIdx = 6;
+        const display = ordered.slice(startIdx, startIdx + 4);
+        const playersDiv = document.getElementById('players');
+        playersDiv.innerHTML = '';
+        display.forEach(o => playersDiv.appendChild(o.element));
+      } else {
+        const playersDiv = document.getElementById('players');
+        const current = Array.from(playersDiv.children);
+        const newOrder = ordered.map(e => e.element);
+        const changed = newOrder.some((el, idx) => el !== current[idx]);
+        if (changed) {
+          current.forEach(el => { el.style.transition = 'opacity 0.5s'; el.style.opacity = '0'; });
+          setTimeout(() => {
+            ordered.forEach(o => playersDiv.appendChild(o.element));
+            ordered.forEach(o => { o.element.style.opacity = '1'; });
+          }, 500);
+        }
       }
       const rank = ordered.map((o, i) => `${i + 1}. ${o.name}`).join(' | ');
       document.getElementById('ranking-bottom').textContent = rank;
@@ -426,7 +470,6 @@ document.addEventListener('DOMContentLoaded', () => {
       setBar(document.querySelector('#player-bot .time .fill'), botTimePerc);
       setBar(document.querySelector('#player-bot .acc .fill'), botAccPerc);
       const botScore = (botAccPerc + botTimePerc) / 2;
-      if (botPlayers[0] && botPlayers[0].nameEl) botPlayers[0].nameEl.style.backgroundColor = colorFromPercent(botScore);
       const ordered = [
         { name: 'Você', score: userScore },
         { name: botPlayers[0].name, score: botScore }

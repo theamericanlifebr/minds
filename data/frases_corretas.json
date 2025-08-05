@@ -1,7 +1,7 @@
 {
   "she is": ["cheers"],
   "we can": ["weekend"],
-    "dog": ["star"],
+  "dog": ["star"],
   "cat": ["star"],
   "book": ["star"],
   "car": ["star"],
@@ -50,8 +50,6 @@
   "city": ["star"],
   "computer": ["star"],
   "teacher": ["star"],
-  "student": ["star"]
-}
+  "student": ["star"],
   "i scream": ["ice cream"]
-  
 }

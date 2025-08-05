@@ -1,4 +1,25 @@
 let pastas = {};
+let frasesCorretas = {};
+
+async function carregarFrasesCorretas() {
+  try {
+    const resp = await fetch('data/frases_corretas.json');
+    frasesCorretas = await resp.json();
+  } catch (e) {
+    frasesCorretas = {};
+  }
+}
+
+function aplicarFrasesCorretas(texto) {
+  let t = texto.toLowerCase();
+  for (const [correta, variantes] of Object.entries(frasesCorretas)) {
+    variantes.forEach(v => {
+      const re = new RegExp(`\\b${v}\\b`, 'g');
+      t = t.replace(re, correta);
+    });
+  }
+  return t;
+}
 
 function parsePastas(raw) {
   const result = {};
@@ -43,6 +64,8 @@ function ehQuaseCorreto(res, esp) {
 }
 
 function ehQuaseCorretoPalavras(resp, esp) {
+  resp = aplicarFrasesCorretas(resp);
+  esp = aplicarFrasesCorretas(esp);
   const normWord = w => w.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/gi, '').toLowerCase();
   const rWords = resp.split(/\s+/).map(normWord).filter(Boolean);
   const eWords = esp.split(/\s+/).map(normWord).filter(Boolean);
@@ -1349,15 +1372,17 @@ function verificarResposta() {
     const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
     const esperado = esperadoLang === 'pt' ? pt : en;
     const expectedPhrase = esperado;
-    let normalizadoResp = norm(resposta);
-    const normalizadoEsp = norm(esperado);
+    const respostaCorrigida = aplicarFrasesCorretas(resposta);
+    const esperadoCorrigido = aplicarFrasesCorretas(esperado);
+    let normalizadoResp = norm(respostaCorrigida);
+    const normalizadoEsp = norm(esperadoCorrigido);
   if (normalizadoResp === 'justicanaterra') {
     normalizadoResp = normalizadoEsp;
   }
   const correto =
     normalizadoResp === normalizadoEsp ||
     ehQuaseCorreto(normalizadoResp, normalizadoEsp) ||
-    ehQuaseCorretoPalavras(resposta, esperado);
+    ehQuaseCorretoPalavras(respostaCorrigida, esperadoCorrigido);
 
   const phraseLen = expectedPhrase.replace(/\s+/g, '').length;
   let timePoints = 0;
@@ -1616,6 +1641,7 @@ async function initGame() {
   const saved = parseInt(localStorage.getItem('pastaAtual'), 10);
   if (saved) pastaAtual = saved;
   await carregarPastas();
+  await carregarFrasesCorretas();
   updateLevelIcon();
   updateModeIcons();
   if (!ilifeDone) {
