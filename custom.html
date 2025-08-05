@@ -42,6 +42,14 @@
     }
     document.addEventListener('DOMContentLoaded', () => {
       const container = document.getElementById('custom-content');
+      const vsStats = JSON.parse(localStorage.getItem('versusStats') || '{}');
+      const vsSection = document.createElement('div');
+      vsSection.innerHTML = `
+        <h1 class="custom-title">Versus - Estatísticas</h1>
+        <div class="custom-info">Precisão: ${vsStats.accuracy || 0}%</div>
+        <div class="custom-info">Velocidade: ${vsStats.speed || 0}%</div>
+      `;
+      container.appendChild(vsSection);
       const statsData = JSON.parse(localStorage.getItem('modeStats') || '{}');
       for (let i = 1; i <= 6; i++) {
         const stats = statsData[i] || {};
