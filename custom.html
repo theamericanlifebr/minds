@@ -92,28 +92,10 @@
             { field: 'folder', label: 'Pasta' },
             { field: 'level', label: 'Nível de reports' }
           ]));
+        }
+        container.appendChild(section);
       }
-      container.appendChild(section);
-    }
-    const vsLogs = JSON.parse(localStorage.getItem('versusLogs') || '[]');
-    if (vsLogs.length) {
-      const vsSection = document.createElement('div');
-      vsSection.innerHTML = '<h1 class="custom-title">Versus</h1>';
-      const table = document.createElement('table');
-      table.className = 'ranking-table';
-      const head = document.createElement('tr');
-      head.innerHTML = '<th>Frase</th><th>Entrada</th><th>Resultado</th><th>Reconhecimento</th><th>Tempo de jogo</th>';
-      table.appendChild(head);
-      vsLogs.forEach(l => {
-        const row = document.createElement('tr');
-        const phrase = `${l.phrasePT}#${l.phraseEN}`;
-        row.innerHTML = `<td>${phrase}</td><td>${l.input}</td><td>${l.correct ? 'certo' : 'errado'}</td><td>${formatTime(l.recogTime)}</td><td>${formatTime(l.gameTime)}</td>`;
-        table.appendChild(row);
-      });
-      vsSection.appendChild(table);
-      container.appendChild(vsSection);
-    }
-    const levelTitle = document.createElement('h1');
+      const levelTitle = document.createElement('h1');
       levelTitle.className = 'custom-title';
       levelTitle.textContent = 'Detalhe dos níveis';
       container.appendChild(levelTitle);
