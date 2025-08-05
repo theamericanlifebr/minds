@@ -172,39 +172,46 @@ document.addEventListener('DOMContentLoaded', () => {
     botPlayers = [];
     const playersDiv = document.getElementById('players');
     playersDiv.innerHTML = '';
+    const imgSize = modoAtual === 2 ? 120 : 150;
+    const barWidth = modoAtual === 2 ? 120 : 200;
     const userDiv = document.createElement('div');
     userDiv.className = 'player';
     userDiv.id = 'player-user';
     userDiv.innerHTML = `
       <div class="player-name">the user</div>
-      <img src="users/theuser.png" alt="the user" class="player-img">
-      <div class="stat-bar time" style="width:${modoAtual === 2 ? '100px' : '200px'}"><div class="fill"></div></div>
-      <div class="stat-bar acc" style="width:${modoAtual === 2 ? '100px' : '200px'}"><div class="fill"></div></div>
+      <img src="users/theuser.png" alt="the user" class="player-img" style="width:${imgSize}px;height:${imgSize}px;">
+      <div class="stat-bar time" style="width:${barWidth}px"><div class="fill"></div></div>
+      <div class="stat-bar acc" style="width:${barWidth}px"><div class="fill"></div></div>
     `;
-    playersDiv.appendChild(userDiv);
-    userImg = userDiv.querySelector('.player-img');
     if (modoAtual === 2) {
       const escolha = [...botsData].sort(() => Math.random() - 0.5).slice(0, 3);
-      escolha.forEach((b, idx) => {
+      const ordered = escolha.map(b => {
+        const stats = b.modes[String(modoAtual)] || { precisao: 0, tempo: 0 };
+        const score = (stats.precisao + stats.tempo) / 2;
+        return { b, stats, score };
+      }).sort((a, b) => b.score - a.score);
+      ordered.forEach((entry, idx) => {
         const div = document.createElement('div');
         div.className = 'player';
         div.id = `bot-${idx}`;
         div.innerHTML = `
-          <div class="player-name">${b.name}</div>
-          <img src="users/${b.file}" alt="${b.name}" class="player-img">
-          <div class="stat-bar time" style="width:100px"><div class="fill"></div></div>
-          <div class="stat-bar acc" style="width:100px"><div class="fill"></div></div>
+          <div class="player-name">${entry.b.name}</div>
+          <img src="users/${entry.b.file}" alt="${entry.b.name}" class="player-img" style="width:120px;height:120px;">
+          <div class="stat-bar time" style="width:120px"><div class="fill"></div></div>
+          <div class="stat-bar acc" style="width:120px"><div class="fill"></div></div>
         `;
         playersDiv.appendChild(div);
-        botPlayers.push({ element: div, img: div.querySelector('.player-img'), stats: b.modes[String(modoAtual)] || { precisao: 0, tempo: 0 }, acc: 0, tempo: 0 });
+        botPlayers.push({ element: div, img: div.querySelector('.player-img'), stats: entry.stats, acc: 0, tempo: 0 });
       });
+      playersDiv.appendChild(userDiv);
     } else {
+      playersDiv.appendChild(userDiv);
       const div = document.createElement('div');
       div.className = 'player';
       div.id = 'player-bot';
       div.innerHTML = `
         <div class="player-name" id="bot-name">${botAtual.name}</div>
-        <img id="bot-avatar" class="player-img" src="users/${botAtual.file}" alt="adversario">
+        <img id="bot-avatar" class="player-img" src="users/${botAtual.file}" alt="adversario" style="width:150px;height:150px;">
         <div class="stat-bar time"><div class="fill"></div></div>
         <div class="stat-bar acc"><div class="fill"></div></div>
       `;
@@ -212,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
       botImg = div.querySelector('.player-img');
       botStats = botAtual.modes[String(modoAtual)] || { precisao: 0, tempo: 0 };
     }
+    userImg = userDiv.querySelector('.player-img');
     nextFrase();
     startProgress();
     updateBars();
@@ -292,7 +300,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function verificar(resp) {
-    const tempo = (Date.now() - inicioFrase) * 0.88;
+    let tempo = Date.now() - inicioFrase;
+    const extra = Math.max(0, esperado.replace(/\s+/g, '').length - 6);
+    tempo -= 131 * extra;
+    tempo = Math.max(tempo * 0.81, 0);
     totalTempo += tempo;
     totalFrases++;
     const correto = fraseCorreta(resp, esperado);
@@ -322,7 +333,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function setBar(fill, perc) {
     fill.style.opacity = 0;
     setTimeout(() => {
-      fill.style.width = (perc * 2) + 'px';
+      const width = fill.parentElement.clientWidth;
+      fill.style.width = (width * perc / 100) + 'px';
       fill.style.backgroundColor = colorFromPercent(perc);
       fill.style.opacity = 1;
     }, 200);
@@ -332,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
     userAccPerc = totalFrases ? (acertos / totalFrases * 100) : 0;
     const avg = totalFrases ? (totalTempo / totalFrases / 1000) : 0;
     userTimePerc = Math.max(0, 100 - avg * 20);
-    userTimePerc = Math.min(userTimePerc + 15, 100);
+    userTimePerc = Math.min(userTimePerc + 22, 100);
     const vary = v => v * (1 + (Math.random() * 0.25 - 0.15));
     setBar(document.querySelector('#player-user .time .fill'), userTimePerc);
     setBar(document.querySelector('#player-user .acc .fill'), userAccPerc);
@@ -345,6 +357,22 @@ document.addEventListener('DOMContentLoaded', () => {
         setBar(bp.element.querySelector('.time .fill'), tempo);
         setBar(bp.element.querySelector('.acc .fill'), acc);
       });
+      const playersDiv = document.getElementById('players');
+      const entries = [
+        { element: document.getElementById('player-user'), score: (userAccPerc + userTimePerc) / 2 },
+        ...botPlayers.map(bp => ({ element: bp.element, score: (bp.acc + bp.tempo) / 2 }))
+      ];
+      const ordered = entries.slice().sort((a, b) => b.score - a.score);
+      const current = Array.from(playersDiv.children);
+      const newOrder = ordered.map(e => e.element);
+      const changed = newOrder.some((el, idx) => el !== current[idx]);
+      if (changed) {
+        current.forEach(el => { el.style.transition = 'opacity 0.5s'; el.style.opacity = '0'; });
+        setTimeout(() => {
+          ordered.forEach(o => playersDiv.appendChild(o.element));
+          ordered.forEach(o => { o.element.style.opacity = '1'; });
+        }, 500);
+      }
     } else {
       botAccPerc = vary(botStats.precisao);
       botTimePerc = vary(botStats.tempo);
