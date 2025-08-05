@@ -57,11 +57,13 @@ async function carregarPastas() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  let botsData = [];
   fetch('users/bots.json')
     .then(r => r.json())
     .then(data => {
+      botsData = data.bots;
       const list = document.getElementById('bot-list');
-      data.bots.forEach(bot => {
+      botsData.forEach(bot => {
         const div = document.createElement('div');
         div.className = 'bot-item';
         div.innerHTML = `<img src="users/${bot.file}" alt="${bot.name}"><div>${bot.name}</div>`;
@@ -86,10 +88,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let progressTimer = null;
   let reconhecimento = null;
   let modoAtual = 0;
+  let startGameTime = 0;
+  let versusLogs = [];
+  let currentFrase = { pt: '', en: '' };
+  let botPlayers = [];
 
   const fraseEl = document.getElementById('versus-phrase');
-  const userImg = document.querySelector('#player-user .player-img');
-  const botImg = document.getElementById('bot-avatar');
+  let userImg = null;
+  let botImg = null;
 
   if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -125,15 +131,85 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function startVersus(bot, modo) {
-    botAtual = bot;
     modoAtual = modo;
     document.getElementById('mode-list').style.display = 'none';
+    if (modo === 3) {
+      botAtual = botsData[Math.floor(Math.random() * botsData.length)];
+      showConnecting(() => initGame());
+    } else {
+      botAtual = bot;
+      initGame();
+    }
+  }
+
+  function showConnecting(callback) {
+    const connect = document.getElementById('versus-connect');
+    const img = document.getElementById('versus-connect-img');
+    const txt = document.getElementById('versus-connect-text');
+    connect.style.display = 'block';
+    img.src = 'https://giffiles.alphacoders.com/209/209663.gif';
+    txt.textContent = 'estamos conectando um jogador';
+    const wait = 4000 + Math.random() * 6000;
+    setTimeout(() => {
+      img.src = 'https://i.pinimg.com/originals/89/86/fe/8986fef7a58272135c7c5d006a312554.gif';
+      txt.textContent = 'jogador encontrado, clique para iniciar jogo';
+      img.style.cursor = 'pointer';
+      img.addEventListener('click', () => {
+        connect.style.display = 'none';
+        callback();
+      }, { once: true });
+    }, wait);
+  }
+
+  async function initGame() {
     const game = document.getElementById('versus-game');
-    document.getElementById('bot-name').textContent = bot.name;
-    botImg.src = `users/${bot.file}`;
     game.style.display = 'block';
+    startGameTime = Date.now();
+    versusLogs = JSON.parse(localStorage.getItem('versusLogs') || '[]');
     frases = embaralhar(await carregarPastas());
-    botStats = bot.modes[String(modo)] || { precisao: 0, tempo: 0 };
+    botPlayers = [];
+    const playersDiv = document.getElementById('players');
+    playersDiv.innerHTML = '';
+    const userDiv = document.createElement('div');
+    userDiv.className = 'player';
+    userDiv.id = 'player-user';
+    userDiv.innerHTML = `
+      <div class="player-name">the user</div>
+      <img src="users/theuser.png" alt="the user" class="player-img">
+      <div class="stat-bar time" style="width:${modoAtual === 2 ? '100px' : '200px'}"><div class="fill"></div></div>
+      <div class="stat-bar acc" style="width:${modoAtual === 2 ? '100px' : '200px'}"><div class="fill"></div></div>
+    `;
+    playersDiv.appendChild(userDiv);
+    userImg = userDiv.querySelector('.player-img');
+    if (modoAtual === 2) {
+      const escolha = [...botsData].sort(() => Math.random() - 0.5).slice(0, 3);
+      escolha.forEach((b, idx) => {
+        const div = document.createElement('div');
+        div.className = 'player';
+        div.id = `bot-${idx}`;
+        div.innerHTML = `
+          <div class="player-name">${b.name}</div>
+          <img src="users/${b.file}" alt="${b.name}" class="player-img">
+          <div class="stat-bar time" style="width:100px"><div class="fill"></div></div>
+          <div class="stat-bar acc" style="width:100px"><div class="fill"></div></div>
+        `;
+        playersDiv.appendChild(div);
+        botPlayers.push({ element: div, img: div.querySelector('.player-img'), stats: b.modes[String(modoAtual)] || { precisao: 0, tempo: 0 }, acc: 0, tempo: 0 });
+      });
+    } else {
+      const div = document.createElement('div');
+      div.className = 'player';
+      div.id = 'player-bot';
+      div.innerHTML = `
+        <div class="player-name" id="bot-name">${botAtual.name}</div>
+        <img id="bot-avatar" class="player-img" src="users/${botAtual.file}" alt="adversario">
+        <div class="stat-bar time"><div class="fill"></div></div>
+        <div class="stat-bar acc"><div class="fill"></div></div>
+      `;
+      playersDiv.appendChild(div);
+      botImg = div.querySelector('.player-img');
+      botStats = botAtual.modes[String(modoAtual)] || { precisao: 0, tempo: 0 };
+    }
     nextFrase();
     startProgress();
     updateBars();
@@ -152,6 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function nextFrase() {
     if (fraseIndex >= frases.length) fraseIndex = 0;
     const [pt, en] = frases[fraseIndex];
+    currentFrase = { pt, en };
     fraseEl.style.transition = 'none';
     fraseEl.style.opacity = 0;
     fraseEl.style.fontSize = '40px';
@@ -216,12 +293,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const tempo = (Date.now() - inicioFrase) * 0.88;
     totalTempo += tempo;
     totalFrases++;
-    if (fraseCorreta(resp, esperado)) {
+    const correto = fraseCorreta(resp, esperado);
+    if (correto) {
       acertos++;
       flashColor('#40e0d0');
     } else {
       flashColor('red');
     }
+    const gameElapsed = Date.now() - startGameTime;
+    versusLogs.push({
+      phrasePT: currentFrase.pt,
+      phraseEN: currentFrase.en,
+      input: resp,
+      correct: correto,
+      recogTime: tempo,
+      gameTime: gameElapsed
+    });
+    localStorage.setItem('versusLogs', JSON.stringify(versusLogs));
     updateBars();
     setTimeout(nextFrase, 1000);
   }
@@ -239,13 +327,25 @@ document.addEventListener('DOMContentLoaded', () => {
     userAccPerc = totalFrases ? (acertos / totalFrases * 100) : 0;
     const avg = totalFrases ? (totalTempo / totalFrases / 1000) : 0;
     userTimePerc = Math.max(0, 100 - avg * 20);
+    userTimePerc = Math.min(userTimePerc + 15, 100);
     const vary = v => v * (1 + (Math.random() * 0.25 - 0.15));
-    botAccPerc = vary(botStats.precisao);
-    botTimePerc = vary(botStats.tempo);
     setBar(document.querySelector('#player-user .time .fill'), userTimePerc);
     setBar(document.querySelector('#player-user .acc .fill'), userAccPerc);
-    setBar(document.querySelector('#player-bot .time .fill'), botTimePerc);
-    setBar(document.querySelector('#player-bot .acc .fill'), botAccPerc);
+    if (modoAtual === 2) {
+      botPlayers.forEach(bp => {
+        const acc = vary(bp.stats.precisao);
+        const tempo = vary(bp.stats.tempo);
+        bp.acc = acc;
+        bp.tempo = tempo;
+        setBar(bp.element.querySelector('.time .fill'), tempo);
+        setBar(bp.element.querySelector('.acc .fill'), acc);
+      });
+    } else {
+      botAccPerc = vary(botStats.precisao);
+      botTimePerc = vary(botStats.tempo);
+      setBar(document.querySelector('#player-bot .time .fill'), botTimePerc);
+      setBar(document.querySelector('#player-bot .acc .fill'), botAccPerc);
+    }
   }
 
   function startProgress() {
@@ -262,16 +362,26 @@ document.addEventListener('DOMContentLoaded', () => {
   function encerrar() {
     fraseEl.style.transition = 'opacity 0.5s';
     fraseEl.style.opacity = 0;
+    const mode = modoAtual;
     modoAtual = 0;
     if (reconhecimento) try { reconhecimento.stop(); } catch (err) {}
     const userScore = (userAccPerc + userTimePerc) / 2;
-    const botScore = (botAccPerc + botTimePerc) / 2;
-    if (userScore > botScore) {
-      botImg.style.opacity = '0.5';
-    } else if (botScore > userScore) {
-      userImg.style.opacity = '0.5';
+    if (mode === 2) {
+      const scores = botPlayers.map(bp => (bp.acc + bp.tempo) / 2);
+      const maxScore = Math.max(userScore, ...scores);
+      if (userScore < maxScore) userImg.style.opacity = '0.5';
+      botPlayers.forEach((bp, idx) => {
+        if (scores[idx] < maxScore) bp.img.style.opacity = '0.5';
+      });
     } else {
-      botImg.style.opacity = userImg.style.opacity = '0.5';
+      const botScore = (botAccPerc + botTimePerc) / 2;
+      if (userScore > botScore) {
+        botImg.style.opacity = '0.5';
+      } else if (botScore > userScore) {
+        userImg.style.opacity = '0.5';
+      } else {
+        botImg.style.opacity = userImg.style.opacity = '0.5';
+      }
     }
   }
 });
