@@ -61,7 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch('users/bots.json')
     .then(r => r.json())
     .then(data => {
-      botsData = data.bots;
+      function botScore(bot) {
+        const m = bot.modes['2'] || { precisao: 0, tempo: 0 };
+        return (m.precisao + m.tempo) / 2;
+      }
+      botsData = data.bots.sort((a, b) => botScore(b) - botScore(a));
       const list = document.getElementById('bot-list');
       botsData.forEach(bot => {
         const div = document.createElement('div');
@@ -85,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let userAccPerc = 0;
   let botTimePerc = 0;
   let botAccPerc = 0;
-  let progressTimer = null;
+  let silencioTimer = null;
   let reconhecimento = null;
   let modoAtual = 0;
   let startGameTime = 0;
@@ -95,9 +99,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const successSound = new Audio('gamesounds/success.mp3');
 
+  function resetSilenceTimer() {
+    if (silencioTimer) clearTimeout(silencioTimer);
+    if (modoAtual) {
+      silencioTimer = setTimeout(() => {
+        if (modoAtual) nextFrase();
+      }, 4000);
+    }
+  }
+
   const fraseEl = document.getElementById('versus-phrase');
   let userImg = null;
   let botImg = null;
+  let userNameEl = null;
 
   function applyTheme() {
     fraseEl.style.color = document.body.classList.contains('versus-white') ? '#555' : '#fff';
@@ -126,10 +140,14 @@ document.addEventListener('DOMContentLoaded', () => {
     reconhecimento.onresult = (e) => {
       const transcript = e.results[e.results.length - 1][0].transcript.trim().toLowerCase();
       verificar(transcript);
+      resetSilenceTimer();
     };
     reconhecimento.onerror = (e) => console.error('Erro no reconhecimento de voz:', e.error);
     reconhecimento.onend = () => {
-      if (modoAtual) try { reconhecimento.start(); } catch (err) {}
+      if (modoAtual) {
+        resetSilenceTimer();
+        try { reconhecimento.start(); } catch (err) {}
+      }
     };
   } else {
     alert('Reconhecimento de voz não suportado.');
@@ -197,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     userDiv.id = 'player-user';
     userDiv.innerHTML = `
       <img src="users/theuser.png" alt="the user" class="player-img" style="width:${imgSize}px;height:${imgSize}px;">
+      <div class="player-name" id="user-name">Você</div>
       <div class="stat-bar time" style="width:${barWidth}px"><div class="fill"></div></div>
       <div class="stat-bar acc" style="width:${barWidth}px"><div class="fill"></div></div>
     `;
@@ -213,11 +232,12 @@ document.addEventListener('DOMContentLoaded', () => {
         div.id = `bot-${idx}`;
         div.innerHTML = `
           <img src="users/${entry.b.file}" alt="${entry.b.name}" class="player-img" style="width:120px;height:120px;">
+          <div class="player-name">${entry.b.name}</div>
           <div class="stat-bar time" style="width:120px"><div class="fill"></div></div>
           <div class="stat-bar acc" style="width:120px"><div class="fill"></div></div>
         `;
         playersDiv.appendChild(div);
-        botPlayers.push({ element: div, img: div.querySelector('.player-img'), stats: entry.stats, acc: 0, tempo: 0 });
+        botPlayers.push({ element: div, img: div.querySelector('.player-img'), nameEl: div.querySelector('.player-name'), name: entry.b.name, stats: entry.stats, acc: 0, tempo: 0 });
       });
       playersDiv.appendChild(userDiv);
     } else {
@@ -227,19 +247,22 @@ document.addEventListener('DOMContentLoaded', () => {
       div.id = 'player-bot';
       div.innerHTML = `
         <img id="bot-avatar" class="player-img" src="users/${botAtual.file}" alt="adversario" style="width:150px;height:150px;">
+        <div class="player-name">${botAtual.name}</div>
         <div class="stat-bar time"><div class="fill"></div></div>
         <div class="stat-bar acc"><div class="fill"></div></div>
       `;
       playersDiv.appendChild(div);
       botImg = div.querySelector('.player-img');
       botStats = botAtual.modes[String(modoAtual)] || { precisao: 0, tempo: 0 };
+      botPlayers = [{ element: div, img: botImg, nameEl: div.querySelector('.player-name'), name: botAtual.name, stats: botStats, acc: 0, tempo: 0 }];
     }
     userImg = userDiv.querySelector('.player-img');
+    userNameEl = document.getElementById('user-name');
     nextFrase();
-    startProgress();
     updateBars();
     setTimeout(encerrar, 120000);
     if (reconhecimento) try { reconhecimento.start(); } catch (err) {}
+    resetSilenceTimer();
   }
 
   function embaralhar(arr) {
@@ -274,6 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     inicioFrase = Date.now();
     fraseIndex++;
+    resetSilenceTimer();
   }
 
   function flashColor(cor) {
@@ -329,6 +353,9 @@ document.addEventListener('DOMContentLoaded', () => {
       successSound.play();
     } else {
       flashColor('red');
+      const old = fraseEl.textContent;
+      fraseEl.textContent = currentFrase.en;
+      setTimeout(() => { fraseEl.textContent = old; }, 1000);
     }
     // Versus mode continues regardless of errors; no game over after mistakes
     const gameElapsed = Date.now() - startGameTime;
@@ -363,6 +390,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const vary = v => v * (1 + (Math.random() * 0.25 - 0.15));
     setBar(document.querySelector('#player-user .time .fill'), userTimePerc);
     setBar(document.querySelector('#player-user .acc .fill'), userAccPerc);
+    const userScore = (userAccPerc + userTimePerc) / 2;
+    if (userNameEl) userNameEl.style.backgroundColor = colorFromPercent(userScore);
     if (modoAtual === 2) {
       botPlayers.forEach(bp => {
         const acc = vary(bp.stats.precisao);
@@ -371,11 +400,12 @@ document.addEventListener('DOMContentLoaded', () => {
         bp.tempo = tempo;
         setBar(bp.element.querySelector('.time .fill'), tempo);
         setBar(bp.element.querySelector('.acc .fill'), acc);
+        if (bp.nameEl) bp.nameEl.style.backgroundColor = colorFromPercent((acc + tempo) / 2);
       });
       const playersDiv = document.getElementById('players');
       const entries = [
-        { element: document.getElementById('player-user'), score: (userAccPerc + userTimePerc) / 2 },
-        ...botPlayers.map(bp => ({ element: bp.element, score: (bp.acc + bp.tempo) / 2 }))
+        { element: document.getElementById('player-user'), name: 'Você', score: userScore },
+        ...botPlayers.map(bp => ({ element: bp.element, name: bp.name, score: (bp.acc + bp.tempo) / 2 }))
       ];
       const ordered = entries.slice().sort((a, b) => b.score - a.score);
       const current = Array.from(playersDiv.children);
@@ -388,32 +418,32 @@ document.addEventListener('DOMContentLoaded', () => {
           ordered.forEach(o => { o.element.style.opacity = '1'; });
         }, 500);
       }
+      const rank = ordered.map((o, i) => `${i + 1}. ${o.name}`).join(' | ');
+      document.getElementById('ranking-bottom').textContent = rank;
     } else {
       botAccPerc = vary(botStats.precisao);
       botTimePerc = vary(botStats.tempo);
       setBar(document.querySelector('#player-bot .time .fill'), botTimePerc);
       setBar(document.querySelector('#player-bot .acc .fill'), botAccPerc);
+      const botScore = (botAccPerc + botTimePerc) / 2;
+      if (botPlayers[0] && botPlayers[0].nameEl) botPlayers[0].nameEl.style.backgroundColor = colorFromPercent(botScore);
+      const ordered = [
+        { name: 'Você', score: userScore },
+        { name: botPlayers[0].name, score: botScore }
+      ].sort((a, b) => b.score - a.score);
+      document.getElementById('ranking-bottom').textContent = ordered.map((o, i) => `${i + 1}. ${o.name}`).join(' | ');
     }
-  }
-
-  function startProgress() {
-    const filled = document.getElementById('barra-preenchida');
-    const start = Date.now();
-    progressTimer = setInterval(() => {
-      const ratio = Math.min((Date.now() - start) / 120000, 1);
-      filled.style.width = (ratio * 100) + '%';
-      filled.style.backgroundColor = calcularCor(ratio * 25000);
-      if (ratio >= 1) clearInterval(progressTimer);
-    }, 100);
   }
 
   function encerrar() {
     fraseEl.style.transition = 'opacity 0.5s';
-    fraseEl.style.opacity = 0;
+    fraseEl.classList.add('dissolve');
     const mode = modoAtual;
     modoAtual = 0;
+    if (silencioTimer) clearTimeout(silencioTimer);
     if (reconhecimento) try { reconhecimento.stop(); } catch (err) {}
     const userScore = (userAccPerc + userTimePerc) / 2;
+    localStorage.setItem('versusStats', JSON.stringify({ accuracy: userAccPerc.toFixed(2), speed: userTimePerc.toFixed(2) }));
     if (mode === 2) {
       const scores = botPlayers.map(bp => (bp.acc + bp.tempo) / 2);
       const maxScore = Math.max(userScore, ...scores);
