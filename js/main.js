@@ -294,7 +294,7 @@ let downPlaying = false;
 let downTimeout = null;
 
 const colorModes = ['light', 'dark', 'gradient'];
-let colorModeIndex = parseInt(localStorage.getItem('colorMode') || '0', 10);
+let colorModeIndex = parseInt(localStorage.getItem('colorMode') || '1', 10);
 
 function updateGradientColor(color) {
   if (document.body.classList.contains('gradient-mode')) {
