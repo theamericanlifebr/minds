@@ -12,7 +12,7 @@ body.dark-mode {
 }
 
 body.gradient-mode {
-  background: linear-gradient(to top, var(--grad-color, #40e0d0) 0%, #000 100%);
+  background: linear-gradient(to bottom, #40e0d0, #0066cc);
 }
 
 body.custom-gradient {
@@ -77,6 +77,14 @@ body.dark-mode #top-nav {
 }
 
 body.dark-mode #top-nav a {
+  color: #fff;
+}
+
+body.gradient-mode #top-nav {
+  background: linear-gradient(90deg, #40e0d0, #0066cc);
+}
+
+body.gradient-mode #top-nav a {
   color: #fff;
 }
 
