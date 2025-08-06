@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mode-list').style.display = 'none';
     if (modo === 3) {
       botAtual = botsData[Math.floor(Math.random() * botsData.length)];
-      showConnecting(() => initGame());
+      matchmakingSequence(() => initGame());
     } else if (modo === 1) {
       botAtual = null;
       initGame();
@@ -209,22 +209,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function showConnecting(callback) {
-    const connect = document.getElementById('versus-connect');
-    const img = document.getElementById('versus-connect-img');
-    const txt = document.getElementById('versus-connect-text');
-    connect.style.display = 'block';
-    img.src = 'https://giffiles.alphacoders.com/209/209663.gif';
-    txt.textContent = 'estamos conectando um jogador';
-    const wait = 4000 + Math.random() * 6000;
+  function matchmakingSequence(callback) {
+    const overlay = document.getElementById('matchmaking');
+    const txt = document.getElementById('matchmaking-text');
+    const avatar = document.getElementById('matchmaking-avatar');
+    overlay.style.display = 'flex';
+    avatar.style.display = 'none';
+    txt.textContent = 'procurando um jogador online...';
+    const findSound = new Audio('gamesounds/finding.mp3');
+    findSound.play();
+    const wait = 5000 + Math.random() * 5000;
     setTimeout(() => {
-      img.src = 'https://i.pinimg.com/originals/89/86/fe/8986fef7a58272135c7c5d006a312554.gif';
-      txt.textContent = 'jogador encontrado, clique para iniciar jogo';
-      img.style.cursor = 'pointer';
-      img.addEventListener('click', () => {
-        connect.style.display = 'none';
-        callback();
-      }, { once: true });
+      const connectSound = new Audio('gamesounds/connected.wav');
+      connectSound.play();
+      avatar.src = `users/${botAtual.file}`;
+      avatar.style.display = 'block';
+      let count = 5;
+      function step() {
+        if (count > 3) {
+          txt.textContent = 'adversario encontrado';
+        } else if (count > 0) {
+          txt.textContent = String(count);
+        } else {
+          overlay.style.display = 'none';
+          callback();
+          return;
+        }
+        count--;
+        setTimeout(step, 1000);
+      }
+      step();
     }, wait);
   }
 
@@ -444,6 +458,8 @@ document.addEventListener('DOMContentLoaded', () => {
     userTimePerc = Math.max(0, 100 - avg * 20);
     userTimePerc = Math.min(userTimePerc + 22, 100);
     userTimePerc *= 0.92;
+    userTimePerc *= 1.1;
+    userTimePerc = Math.min(userTimePerc, 100);
     const vary = v => v * (1 + (Math.random() * 0.25 - 0.15));
     setBar(document.querySelector('#player-user .time .fill'), userTimePerc);
     setBar(document.querySelector('#player-user .acc .fill'), userAccPerc);
