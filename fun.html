@@ -14,9 +14,8 @@
     <a href="play.html">play</a>
     <a href="custom.html">custom</a>
     <a href="versus.html">versus</a>
-    <a href="world.html">world</a>
   </nav>
-  <div id="fun-content" style="text-align:center;margin-top:50px;"></div>
+  <div id="fun-content" style="margin-top:50px;"></div>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const container = document.getElementById('fun-content');
@@ -27,25 +26,35 @@
         const avgAcc = modes.reduce((s, m) => s + m.precisao, 0) / modes.length;
         const avgTempo = modes.reduce((s, m) => s + m.tempo, 0) / modes.length;
         const score = (avgAcc + avgTempo) / 2;
-        return { name: b.name, score };
+        return { name: b.name, score, file: b.file };
       });
       const vsStats = JSON.parse(localStorage.getItem('versusStats') || '{}');
       const userAcc = parseFloat(vsStats.accuracy) || 0;
       const userTempo = parseFloat(vsStats.speed) || 0;
       const userScore = (userAcc + userTempo) / 2;
-      entries.push({ name: 'Você', score: userScore });
+      entries.push({ name: 'Você', score: userScore, file: 'theuser.png' });
       entries.sort((a, b) => b.score - a.score);
-      const table = document.createElement('table');
-      table.className = 'ranking-table';
-      const header = document.createElement('tr');
-      header.innerHTML = '<th>Posição</th><th>Jogador</th><th>Score</th>';
-      table.appendChild(header);
-      entries.forEach((e, idx) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${idx + 1}</td><td>${e.name}</td><td>${e.score.toFixed(2)}</td>`;
-        table.appendChild(tr);
+      entries.forEach(e => {
+        const row = document.createElement('div');
+        row.className = 'ranking-row';
+
+        const img = document.createElement('img');
+        img.src = `users/${e.file}`;
+        img.className = 'ranking-avatar';
+
+        const name = document.createElement('span');
+        name.className = 'ranking-name';
+        name.textContent = e.name;
+
+        const score = document.createElement('span');
+        score.className = 'ranking-score';
+        score.textContent = `${Math.round(e.score)}%`;
+
+        row.appendChild(img);
+        row.appendChild(name);
+        row.appendChild(score);
+        container.appendChild(row);
       });
-      container.appendChild(table);
     });
   </script>
 </body>
