@@ -41,6 +41,22 @@ async function carregarPastas() {
   pastas = parsePastas(obj);
 }
 
+async function carregarImagens() {
+  const resp = await fetch('photos/list');
+  const files = await resp.json();
+  const items = files.map(f => {
+    const base = f.replace(/\.[^.]+$/, '');
+    const [pt, en] = base.split('#').map(s => s.trim());
+    return { pt, en, src: `photos/${f}` };
+  });
+  const embaralhado = embaralhar(items);
+  frasesArr = embaralhado.map(i => [i.pt, i.en]);
+  imageArr = embaralhado.map(i => i.src);
+  fraseIndex = 0;
+  setTimeout(() => mostrarFrase(), 300);
+  atualizarBarraProgresso();
+}
+
 function ehQuaseCorreto(res, esp) {
   let i = 0, j = 0, dif = 0;
   while (i < res.length && j < esp.length) {
@@ -220,6 +236,7 @@ setInterval(() => {
 }, 4000);
 
 let frasesArr = [], fraseIndex = 0;
+let imageArr = [];
 let acertosTotais = parseInt(localStorage.getItem('acertosTotais') || '0', 10);
 let errosTotais = parseInt(localStorage.getItem('errosTotais') || '0', 10);
 let tentativasTotais = parseInt(localStorage.getItem('tentativasTotais') || '0', 10);
@@ -335,12 +352,12 @@ const phraseDisplay = document.getElementById('texto-exibicao');
 if (phraseDisplay) phraseDisplay.addEventListener('click', reportLastError);
 
 const modeImages = {
-  1: 'selos%20modos%20de%20jogo/modo1.png',
-  2: 'selos%20modos%20de%20jogo/modo2.png',
-  3: 'selos%20modos%20de%20jogo/modo3.png',
-  4: 'selos%20modos%20de%20jogo/modo4.png',
-  5: 'selos%20modos%20de%20jogo/modo5.png',
-  6: 'selos%20modos%20de%20jogo/modo6.png'
+  1: 'selos%20modos%20de%20jogo/modo7.png',
+  2: 'selos%20modos%20de%20jogo/modo8.png',
+  3: 'selos%20modos%20de%20jogo/modo9.png',
+  4: 'selos%20modos%20de%20jogo/modo10.png',
+  5: 'selos%20modos%20de%20jogo/modo11.png',
+  6: 'selos%20modos%20de%20jogo/modo12.png'
 };
 
 const modeTransitions = {
@@ -1085,7 +1102,7 @@ function beginGame() {
     updateModeIcons();
     switch (selectedMode) {
       case 1:
-        mostrarTexto = 'pt';
+        mostrarTexto = 'none';
         voz = 'en';
         esperadoLang = 'pt';
         break;
@@ -1114,6 +1131,11 @@ function beginGame() {
       voz = null;
       esperadoLang = 'en';
       break;
+    }
+    const barra = document.getElementById('barra-progresso');
+    if (barra) {
+      if (selectedMode === 1) barra.classList.add('circular');
+      else barra.classList.remove('circular');
     }
     if (reconhecimento) {
       if (selectedMode === 1) {
@@ -1206,16 +1228,18 @@ function embaralhar(array) {
 }
 
 function carregarFrases() {
+  if (selectedMode === 1) {
+    carregarImagens();
+    return;
+  }
   let principais = [], anteriores = [];
   if (pastas[pastaAtual]) {
-	principais = pastas[pastaAtual];
-
+    principais = pastas[pastaAtual];
   }
   if (pastaAtual > 1) {
     for (let i = 1; i < pastaAtual; i++) {
       if (pastas[i]) {
-		const frases = pastas[i];
-
+        const frases = pastas[i];
         anteriores = anteriores.concat(frases);
       }
     }
@@ -1237,9 +1261,19 @@ function mostrarFrase() {
   if (fraseIndex >= frasesArr.length) fraseIndex = 0;
   const [pt, en] = frasesArr[fraseIndex];
   const texto = document.getElementById("texto-exibicao");
-  if (mostrarTexto === 'pt') texto.textContent = pt;
-  else if (mostrarTexto === 'en') texto.textContent = en;
-  else texto.textContent = '';
+  const img = document.getElementById('imagem-modo7');
+  if (selectedMode === 1) {
+    if (img) {
+      img.src = imageArr[fraseIndex];
+      img.style.display = 'block';
+    }
+    if (texto) texto.textContent = '';
+  } else {
+    if (img) img.style.display = 'none';
+    if (mostrarTexto === 'pt') texto.textContent = pt;
+    else if (mostrarTexto === 'en') texto.textContent = en;
+    else texto.textContent = '';
+  }
   document.getElementById("pt").value = '';
   document.getElementById("pt").disabled = false;
   if (voz === 'en') falar(en, 'en');
@@ -1348,34 +1382,15 @@ function verificarResposta() {
 
   const stats = ensureModeStats(selectedMode);
 
-  if (selectedMode === 1) {
-    stats.totalPhrases++;
-    stats.correct++;
-    saveModeStats();
-    document.getElementById("somAcerto").play();
-    acertosTotais++;
-    points += 1000;
-    saveTotals();
-    resultado.textContent = '';
-    const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
-    const reached = points >= threshold && !completedModes[selectedMode];
-    flashSuccess(() => {
-      if (reached) finishMode();
-      else continuar();
-    });
-    atualizarBarraProgresso();
-    return;
-  }
+  const [pt, en] = frasesArr[fraseIndex];
 
-    const [pt, en] = frasesArr[fraseIndex];
-
-    const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
-    const esperado = esperadoLang === 'pt' ? pt : en;
-    const expectedPhrase = esperado;
-    const respostaCorrigida = aplicarFrasesCorretas(resposta);
-    const esperadoCorrigido = aplicarFrasesCorretas(esperado);
-    let normalizadoResp = norm(respostaCorrigida);
-    const normalizadoEsp = norm(esperadoCorrigido);
+  const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+  const esperado = esperadoLang === 'pt' ? pt : en;
+  const expectedPhrase = esperado;
+  const respostaCorrigida = aplicarFrasesCorretas(resposta);
+  const esperadoCorrigido = aplicarFrasesCorretas(esperado);
+  let normalizadoResp = norm(respostaCorrigida);
+  const normalizadoEsp = norm(esperadoCorrigido);
   if (normalizadoResp === 'justicanaterra') {
     normalizadoResp = normalizadoEsp;
   }
@@ -1466,9 +1481,16 @@ function atualizarBarraProgresso() {
   const filled = document.getElementById('barra-preenchida');
   const limite = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
   const perc = Math.max(0, Math.min(points, limite)) / limite * 100;
-  filled.style.width = perc + '%';
   const barColor = calcularCor(points);
-  filled.style.backgroundColor = barColor;
+  if (selectedMode === 1) {
+    filled.style.width = '100%';
+    filled.style.backgroundColor = 'transparent';
+    filled.style.setProperty('--perc', perc * 3.6);
+    filled.style.setProperty('--bar-color', barColor);
+  } else {
+    filled.style.width = perc + '%';
+    filled.style.backgroundColor = barColor;
+  }
   updateGradientColor(barColor);
   const icon = document.getElementById('mode-icon');
   if (icon) {
