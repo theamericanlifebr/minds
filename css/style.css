@@ -787,3 +787,27 @@ body.dark-mode #clock {
   }
 }
 
+
+.explore-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.explore-grid img {
+  width: 100%;
+  cursor: pointer;
+}
+
+#color-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  z-index: 1000;
+}
+
