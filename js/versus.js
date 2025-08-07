@@ -50,6 +50,15 @@ function colorFromPercent(perc) {
   return calcularCor((perc / 100) * max);
 }
 
+const TIME_POINT_REFS = {
+  1: 125,
+  2: 124,
+  3: 126,
+  4: 105,
+  5: 100,
+  6: 120
+};
+
 let frasesCorretas = {};
 
 async function carregarFrasesCorretas() {
@@ -109,8 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let botAtual = null;
   let userTimePerc = 0;
   let userAccPerc = 0;
-  let botTimePerc = 0;
-  let botAccPerc = 0;
   let silencioTimer = null;
   let reconhecimento = null;
   let modoAtual = 0;
@@ -118,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let versusLogs = [];
   let currentFrase = { pt: '', en: '' };
   let botPlayers = [];
+  let userPlayer = null;
 
   const successSound = new Audio('gamesounds/success.mp3');
 
@@ -132,7 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const fraseEl = document.getElementById('versus-phrase');
   let userImg = null;
-  let botImg = null;
   let userNameEl = null;
 
   function applyTheme() {
@@ -253,17 +260,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const playersDiv = document.getElementById('players');
     playersDiv.innerHTML = '';
     const multi = modoAtual === 2 || modoAtual === 1;
-    const imgSize = multi ? 120 : 150;
-    const barWidth = multi ? 120 : 200;
     const userDiv = document.createElement('div');
     userDiv.className = 'player';
     userDiv.id = 'player-user';
     userDiv.innerHTML = `
-      <img src="users/theuser.png" alt="the user" class="player-img" style="width:${imgSize}px;height:${imgSize}px;">
-      <div class="player-name" id="user-name">Você</div>
-      <div class="stat-bar time" style="width:${barWidth}px"><div class="fill"></div></div>
-      <div class="stat-bar acc" style="width:${barWidth}px"><div class="fill"></div></div>
+      <div class="player-pos">0º</div>
+      <div class="player-info">
+        <img src="users/theuser.png" alt="the user" class="player-img">
+        <div class="player-name" id="user-name">Você</div>
+        <div class="stat-bar time"><div class="fill"></div></div>
+        <div class="stat-bar acc"><div class="fill"></div></div>
+      </div>
+      <div class="player-score">0</div>
     `;
+    userPlayer = {
+      element: userDiv,
+      posEl: userDiv.querySelector('.player-pos'),
+      scoreEl: userDiv.querySelector('.player-score')
+    };
     if (multi) {
       const numBots = modoAtual === 1 ? 9 : 3;
       const escolha = modoAtual === 1
@@ -287,16 +301,22 @@ document.addEventListener('DOMContentLoaded', () => {
         div.className = 'player';
         div.id = `bot-${idx}`;
         div.innerHTML = `
-          <img src="users/${entry.b.file}" alt="${entry.b.name}" class="player-img" style="width:${imgSize}px;height:${imgSize}px;">
-          <div class="player-name">${entry.b.name}</div>
-          <div class="stat-bar time" style="width:${barWidth}px"><div class="fill"></div></div>
-          <div class="stat-bar acc" style="width:${barWidth}px"><div class="fill"></div></div>
+          <div class="player-pos">0º</div>
+          <div class="player-info">
+            <img src="users/${entry.b.file}" alt="${entry.b.name}" class="player-img">
+            <div class="player-name">${entry.b.name}</div>
+            <div class="stat-bar time"><div class="fill"></div></div>
+            <div class="stat-bar acc"><div class="fill"></div></div>
+          </div>
+          <div class="player-score">0</div>
         `;
         playersDiv.appendChild(div);
         botPlayers.push({
           element: div,
           img: div.querySelector('.player-img'),
           nameEl: div.querySelector('.player-name'),
+          posEl: div.querySelector('.player-pos'),
+          scoreEl: div.querySelector('.player-score'),
           name: entry.b.name,
           stats: entry.stats,
           accSum: 0,
@@ -313,15 +333,18 @@ document.addEventListener('DOMContentLoaded', () => {
       div.className = 'player';
       div.id = 'player-bot';
       div.innerHTML = `
-        <img id="bot-avatar" class="player-img" src="users/${botAtual.file}" alt="adversario" style="width:150px;height:150px;">
-        <div class="player-name">${botAtual.name}</div>
-        <div class="stat-bar time"><div class="fill"></div></div>
-        <div class="stat-bar acc"><div class="fill"></div></div>
+        <div class="player-pos">0º</div>
+        <div class="player-info">
+          <img id="bot-avatar" class="player-img" src="users/${botAtual.file}" alt="adversario">
+          <div class="player-name">${botAtual.name}</div>
+          <div class="stat-bar time"><div class="fill"></div></div>
+          <div class="stat-bar acc"><div class="fill"></div></div>
+        </div>
+        <div class="player-score">0</div>
       `;
       playersDiv.appendChild(div);
-      botImg = div.querySelector('.player-img');
       botStats = botAtual.modes[String(modoAtual)] || { precisao: 0, tempo: 0 };
-      botPlayers = [{ element: div, img: botImg, nameEl: div.querySelector('.player-name'), name: botAtual.name, stats: botStats, accSum: 0, timeSum: 0, rounds: 0, acc: 0, tempo: 0 }];
+      botPlayers = [{ element: div, img: div.querySelector('.player-img'), nameEl: div.querySelector('.player-name'), posEl: div.querySelector('.player-pos'), scoreEl: div.querySelector('.player-score'), name: botAtual.name, stats: botStats, accSum: 0, timeSum: 0, rounds: 0, acc: 0, tempo: 0 }];
     }
     userImg = userDiv.querySelector('.player-img');
     userNameEl = document.getElementById('user-name');
@@ -461,62 +484,41 @@ document.addEventListener('DOMContentLoaded', () => {
     userTimePerc *= 1.1;
     userTimePerc = Math.min(userTimePerc, 100);
     const vary = v => v * (1 + (Math.random() * 0.25 - 0.15));
-    setBar(document.querySelector('#player-user .time .fill'), userTimePerc);
-    setBar(document.querySelector('#player-user .acc .fill'), userAccPerc);
-    const userScore = (userAccPerc + userTimePerc) / 2;
-    if (modoAtual === 2 || modoAtual === 1) {
-      botPlayers.forEach(bp => {
-        const acc = vary(bp.stats.precisao);
-        const tempo = vary(bp.stats.tempo);
-        bp.accSum += acc;
-        bp.timeSum += tempo;
-        bp.rounds++;
-        bp.acc = bp.accSum / bp.rounds;
-        bp.tempo = bp.timeSum / bp.rounds;
-        setBar(bp.element.querySelector('.time .fill'), bp.tempo);
-        setBar(bp.element.querySelector('.acc .fill'), bp.acc);
-      });
-      const entries = [
-        { element: document.getElementById('player-user'), name: 'Você', score: userScore },
-        ...botPlayers.map(bp => ({ element: bp.element, name: bp.name, score: (bp.acc + bp.tempo) / 2 }))
-      ];
-      const ordered = entries.slice().sort((a, b) => b.score - a.score);
-      if (modoAtual === 1) {
-        const userIdx = ordered.findIndex(o => o.name === 'Você');
-        let startIdx = 0;
-        if (userIdx >= 4 && userIdx <= 7) startIdx = 4;
-        else if (userIdx >= 8) startIdx = 6;
-        const display = ordered.slice(startIdx, startIdx + 4);
-        const playersDiv = document.getElementById('players');
-        playersDiv.innerHTML = '';
-        display.forEach(o => playersDiv.appendChild(o.element));
-      } else {
-        const playersDiv = document.getElementById('players');
-        const current = Array.from(playersDiv.children);
-        const newOrder = ordered.map(e => e.element);
-        const changed = newOrder.some((el, idx) => el !== current[idx]);
-        if (changed) {
-          current.forEach(el => { el.style.transition = 'opacity 0.5s'; el.style.opacity = '0'; });
-          setTimeout(() => {
-            ordered.forEach(o => playersDiv.appendChild(o.element));
-            ordered.forEach(o => { o.element.style.opacity = '1'; });
-          }, 500);
-        }
-      }
-      const rank = ordered.map((o, i) => `${i + 1}. ${o.name}`).join(' | ');
-      document.getElementById('ranking-bottom').textContent = rank;
-    } else {
-      botAccPerc = vary(botStats.precisao);
-      botTimePerc = vary(botStats.tempo);
-      setBar(document.querySelector('#player-bot .time .fill'), botTimePerc);
-      setBar(document.querySelector('#player-bot .acc .fill'), botAccPerc);
-      const botScore = (botAccPerc + botTimePerc) / 2;
-      const ordered = [
-        { name: 'Você', score: userScore },
-        { name: botPlayers[0].name, score: botScore }
-      ].sort((a, b) => b.score - a.score);
-      document.getElementById('ranking-bottom').textContent = ordered.map((o, i) => `${i + 1}. ${o.name}`).join(' | ');
-    }
+    setBar(userPlayer.element.querySelector('.time .fill'), userTimePerc);
+    setBar(userPlayer.element.querySelector('.acc .fill'), userAccPerc);
+    const ref = TIME_POINT_REFS[modoAtual] || 100;
+    const userTimePts = (userTimePerc / 100) * ref * totalFrases;
+    const userErrors = totalFrases - acertos;
+    const userScore = userTimePts + acertos - userErrors;
+    botPlayers.forEach(bp => {
+      const acc = vary(bp.stats.precisao);
+      const tempo = vary(bp.stats.tempo);
+      bp.accSum += acc;
+      bp.timeSum += tempo;
+      bp.rounds++;
+      bp.acc = bp.accSum / bp.rounds;
+      bp.tempo = bp.timeSum / bp.rounds;
+      setBar(bp.element.querySelector('.time .fill'), bp.tempo);
+      setBar(bp.element.querySelector('.acc .fill'), bp.acc);
+    });
+    const entries = [
+      { element: userPlayer.element, name: 'Você', score: userScore, posEl: userPlayer.posEl, scoreEl: userPlayer.scoreEl },
+      ...botPlayers.map(bp => {
+        const botTimePts = (bp.tempo / 100) * ref * bp.rounds;
+        const botCorrect = (bp.acc / 100) * bp.rounds;
+        const botErrors = bp.rounds - botCorrect;
+        return { element: bp.element, name: bp.name, score: botTimePts + botCorrect - botErrors, posEl: bp.posEl, scoreEl: bp.scoreEl };
+      })
+    ];
+    const ordered = entries.slice().sort((a, b) => b.score - a.score);
+    const playersDiv = document.getElementById('players');
+    ordered.forEach((o, idx) => {
+      o.posEl.textContent = `${idx + 1}º`;
+      o.scoreEl.textContent = o.score.toFixed(1);
+      playersDiv.appendChild(o.element);
+    });
+    const rank = ordered.map((o, i) => `${i + 1}. ${o.name}`).join(' | ');
+    document.getElementById('ranking-bottom').textContent = rank;
   }
 
   function encerrar() {
@@ -526,25 +528,19 @@ document.addEventListener('DOMContentLoaded', () => {
     modoAtual = 0;
     if (silencioTimer) clearTimeout(silencioTimer);
     if (reconhecimento) try { reconhecimento.stop(); } catch (err) {}
-    const userScore = (userAccPerc + userTimePerc) / 2;
+    const ref = TIME_POINT_REFS[mode] || 100;
+    const userTimePts = (userTimePerc / 100) * ref * totalFrases;
+    const userErrors = totalFrases - acertos;
+    const userScore = userTimePts + acertos - userErrors;
     localStorage.setItem('versusStats', JSON.stringify({ accuracy: userAccPerc.toFixed(2), speed: userTimePerc.toFixed(2) }));
-    if (mode === 2) {
-      const scores = botPlayers.map(bp => (bp.acc + bp.tempo) / 2);
-      const maxScore = Math.max(userScore, ...scores);
-      if (userScore < maxScore) userImg.style.opacity = '0.5';
-      botPlayers.forEach((bp, idx) => {
-        if (scores[idx] < maxScore) bp.img.style.opacity = '0.5';
-      });
-    } else {
-      const botScore = (botAccPerc + botTimePerc) / 2;
-      if (userScore > botScore) {
-        botImg.style.opacity = '0.5';
-      } else if (botScore > userScore) {
-        userImg.style.opacity = '0.5';
-      } else {
-        botImg.style.opacity = userImg.style.opacity = '0.5';
-      }
-    }
+    const botScores = botPlayers.map(bp => {
+      const timePts = (bp.tempo / 100) * ref * bp.rounds;
+      const corr = (bp.acc / 100) * bp.rounds;
+      return { img: bp.img, score: timePts + corr - (bp.rounds - corr) };
+    });
+    const maxScore = Math.max(userScore, ...botScores.map(b => b.score));
+    if (userScore < maxScore) userImg.style.opacity = '0.5';
+    botScores.forEach(bs => { if (bs.score < maxScore) bs.img.style.opacity = '0.5'; });
   }
 });
 
