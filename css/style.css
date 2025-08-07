@@ -811,3 +811,23 @@ body.dark-mode #clock {
   z-index: 1000;
 }
 
+#countdown {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 2rem;
+  color: #000;
+  font-weight: bold;
+  display: none;
+}
+
+#random-photo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 80%;
+  max-height: 80%;
+  display: none;
+}
+
