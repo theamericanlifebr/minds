@@ -3,9 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>American Life</title>
+  <title>World</title>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    const unlocked = JSON.parse(localStorage.getItem('unlockedModes') || '{}');
+    [7,8,9,10,11,12].forEach(m => unlocked[m] = true);
+    unlocked[1] = unlocked[1] || true;
+    localStorage.setItem('unlockedModes', JSON.stringify(unlocked));
+    localStorage.setItem('ilifeDone', 'true');
+    localStorage.setItem('tutorialDone', 'true');
+  </script>
   <script>
     if (localStorage.getItem('ilifeDone') === 'true') {
       document.write('<style>#ilife-screen{display:none;}#menu{display:flex;}</style>');
@@ -21,20 +29,16 @@
     <a href="versus.html">versus</a>
     <a href="world.html">world</a>
   </nav>
-    <div id="ilife-screen">
-      <img id="ilife-logo" src="selos%20modos%20de%20jogo/logoitalk2.png" alt="Logo Italk">
-      <div id="ilife-text">toque para<br>desbloquear sua fluência</div>
-    </div>
   <img id="nivel-indicador" alt="Level" />
   <img id="tutorial-logo" src="selos%20modos%20de%20jogo/logoitalk2.png" alt="Logo Italk" style="display:none" />
   <div id="menu" style="display:none">
     <div id="menu-modes">
-      <img src="selos%20modos%20de%20jogo/modo1.png" data-mode="1" alt="Modo 1">
-      <img src="selos%20modos%20de%20jogo/modo2.png" data-mode="2" alt="Modo 2">
-      <img src="selos%20modos%20de%20jogo/modo3.png" data-mode="3" alt="Modo 3">
-      <img src="selos%20modos%20de%20jogo/modo4.png" data-mode="4" alt="Modo 4">
-      <img src="selos%20modos%20de%20jogo/modo5.png" data-mode="5" alt="Modo 5">
-      <img src="selos%20modos%20de%20jogo/modo6.png" data-mode="6" alt="Modo 6">
+      <img src="selos%20modos%20de%20jogo/modo7.png" data-mode="7" alt="Modo 7">
+      <img src="selos%20modos%20de%20jogo/modo8.png" data-mode="8" alt="Modo 8">
+      <img src="selos%20modos%20de%20jogo/modo9.png" data-mode="9" alt="Modo 9">
+      <img src="selos%20modos%20de%20jogo/modo10.png" data-mode="10" alt="Modo 10">
+      <img src="selos%20modos%20de%20jogo/modo11.png" data-mode="11" alt="Modo 11">
+      <img src="selos%20modos%20de%20jogo/modo12.png" data-mode="12" alt="Modo 12">
     </div>
   </div>
 
@@ -59,12 +63,12 @@
     <div id="resultado"></div>
     <div id="acertos"></div>
     <div id="mode-buttons">
-      <img src="selos%20modos%20de%20jogo/modo1.png" data-mode="1" class="mode-btn" alt="Modo 1" />
-      <img src="selos%20modos%20de%20jogo/modo2.png" data-mode="2" class="mode-btn" alt="Modo 2" />
-      <img src="selos%20modos%20de%20jogo/modo3.png" data-mode="3" class="mode-btn" alt="Modo 3" />
-      <img src="selos%20modos%20de%20jogo/modo4.png" data-mode="4" class="mode-btn" alt="Modo 4" />
-      <img src="selos%20modos%20de%20jogo/modo5.png" data-mode="5" class="mode-btn" alt="Modo 5" />
-      <img src="selos%20modos%20de%20jogo/modo6.png" data-mode="6" class="mode-btn" alt="Modo 6" />
+      <img src="selos%20modos%20de%20jogo/modo7.png" data-mode="7" class="mode-btn" alt="Modo 7" />
+      <img src="selos%20modos%20de%20jogo/modo8.png" data-mode="8" class="mode-btn" alt="Modo 8" />
+      <img src="selos%20modos%20de%20jogo/modo9.png" data-mode="9" class="mode-btn" alt="Modo 9" />
+      <img src="selos%20modos%20de%20jogo/modo10.png" data-mode="10" class="mode-btn" alt="Modo 10" />
+      <img src="selos%20modos%20de%20jogo/modo11.png" data-mode="11" class="mode-btn" alt="Modo 11" />
+      <img src="selos%20modos%20de%20jogo/modo12.png" data-mode="12" class="mode-btn" alt="Modo 12" />
     </div>
   </div>
 
