@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-mode">
+  <nav id="top-nav">
+    <a href="index.html">home</a>
+    <a href="fun.html">fun</a>
+    <a href="play.html">play</a>
+    <a href="custom.html">custom</a>
+    <a href="versus.html">versus</a>
+    <a href="explore.html">explore</a>
+  </nav>
+  <div class="explore-grid">
+    <img src="selos%20modos%20de%20jogo/modo7.png" alt="Modo 7" data-color="#ffffff">
+    <img src="selos%20modos%20de%20jogo/modo8.png" alt="Modo 8" data-color="#FFD700">
+    <img src="selos%20modos%20de%20jogo/modo9.png" alt="Modo 9" data-color="#000000">
+    <img src="selos%20modos%20de%20jogo/modo10.png" alt="Modo 10" data-color="#00008B">
+    <img src="selos%20modos%20de%20jogo/modo11.png" alt="Modo 11" data-color="#D3D3D3">
+    <img src="selos%20modos%20de%20jogo/modo12.png" alt="Modo 12" data-color="#40E0D0">
+  </div>
+  <div id="color-screen"></div>
+  <script>
+    document.querySelectorAll('.explore-grid img').forEach(img => {
+      img.addEventListener('click', () => {
+        const overlay = document.getElementById('color-screen');
+        overlay.style.backgroundColor = img.dataset.color;
+        overlay.style.display = 'block';
+      });
+    });
+    document.getElementById('color-screen').addEventListener('click', function() {
+      this.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
