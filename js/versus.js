@@ -52,12 +52,14 @@ function colorFromPercent(perc) {
 
 const TIME_POINT_REFS = {
   1: 125,
-  2: 124,
-  3: 126,
-  4: 105,
+  2: 95,
+  3: 95,
+  4: 100,
   5: 100,
-  6: 120
+  6: 95
 };
+
+const SPEED_SCALE = 70 / 81.72;
 
 let frasesCorretas = {};
 
@@ -483,6 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
     userTimePerc *= 0.92;
     userTimePerc *= 1.1;
     userTimePerc = Math.min(userTimePerc, 100);
+    userTimePerc *= SPEED_SCALE;
     const vary = v => v * (1 + (Math.random() * 0.25 - 0.15));
     setBar(userPlayer.element.querySelector('.time .fill'), userTimePerc);
     setBar(userPlayer.element.querySelector('.acc .fill'), userAccPerc);
@@ -532,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userTimePts = (userTimePerc / 100) * ref * totalFrases;
     const userErrors = totalFrases - acertos;
     const userScore = userTimePts + acertos - userErrors;
-    localStorage.setItem('versusStats', JSON.stringify({ accuracy: userAccPerc.toFixed(2), speed: userTimePerc.toFixed(2) }));
+    localStorage.setItem('versusStats', JSON.stringify({ accuracy: userAccPerc.toFixed(2), speed: userTimePerc.toFixed(2), scaled: true }));
     const botScores = botPlayers.map(bp => {
       const timePts = (bp.tempo / 100) * ref * bp.rounds;
       const corr = (bp.acc / 100) * bp.rounds;
