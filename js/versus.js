@@ -1,55 +1,5 @@
 // Versus mode logic
 
-const colorStops = [
-  [0, '#ff0000'],
-  [2000, '#ff3b00'],
-  [4000, '#ff7f00'],
-  [6000, '#ffb300'],
-  [8000, '#ffe000'],
-  [10000, '#ffff66'],
-  [12000, '#ccff66'],
-  [14000, '#99ff99'],
-  [16000, '#00cc66'],
-  [18000, '#00994d'],
-  [20000, '#00ffff'],
-  [22000, '#66ccff'],
-  [24000, '#0099ff'],
-  [25000, '#0099ff']
-];
-
-function hexToRgb(hex) {
-  const int = parseInt(hex.slice(1), 16);
-  return [int >> 16 & 255, int >> 8 & 255, int & 255];
-}
-
-function rgbToHex(r, g, b) {
-  return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
-}
-
-function calcularCor(pontos) {
-  const max = colorStops[colorStops.length - 1][0];
-  const p = Math.max(0, Math.min(pontos, max));
-  for (let i = 0; i < colorStops.length - 1; i++) {
-    const [p1, c1] = colorStops[i];
-    const [p2, c2] = colorStops[i + 1];
-    if (p >= p1 && p <= p2) {
-      const ratio = (p - p1) / (p2 - p1);
-      const [r1, g1, b1] = hexToRgb(c1);
-      const [r2, g2, b2] = hexToRgb(c2);
-      const r = Math.round(r1 + ratio * (r2 - r1));
-      const g = Math.round(g1 + ratio * (g2 - g1));
-      const b = Math.round(b1 + ratio * (b2 - b1));
-      return rgbToHex(r, g, b);
-    }
-  }
-  return colorStops[colorStops.length - 1][1];
-}
-
-function colorFromPercent(perc) {
-  const max = colorStops[colorStops.length - 1][0];
-  return calcularCor((perc / 100) * max);
-}
-
 let frasesCorretas = {};
 
 async function carregarFrasesCorretas() {
@@ -105,12 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let totalTempo = 0;
   let totalFrases = 0;
   let acertos = 0;
-  let botStats = { precisao: 0, tempo: 0 };
   let botAtual = null;
-  let userTimePerc = 0;
-  let userAccPerc = 0;
-  let botTimePerc = 0;
-  let botAccPerc = 0;
   let silencioTimer = null;
   let reconhecimento = null;
   let modoAtual = 0;
@@ -118,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let versusLogs = [];
   let currentFrase = { pt: '', en: '' };
   let botPlayers = [];
+  let userPlayer = null;
 
   const successSound = new Audio('gamesounds/success.mp3');
 
@@ -131,9 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const fraseEl = document.getElementById('versus-phrase');
-  let userImg = null;
-  let botImg = null;
-  let userNameEl = null;
 
   function applyTheme() {
     fraseEl.style.color = document.body.classList.contains('versus-white') ? '#555' : '#fff';
@@ -177,6 +120,24 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   } else {
     alert('Reconhecimento de voz não suportado.');
+  }
+
+  function createRankingPlayer(name, img, stats = {}) {
+    const row = document.createElement('div');
+    row.className = 'ranking-row';
+    row.innerHTML = `<img src="${img}" alt="${name}"><span class="rank-name">${name}</span><span class="rank-score">0</span><span class="rank-hits">0</span><span class="rank-errors">0</span>`;
+    return {
+      element: row,
+      name,
+      scoreEl: row.querySelector('.rank-score'),
+      hitsEl: row.querySelector('.rank-hits'),
+      errorsEl: row.querySelector('.rank-errors'),
+      score: 0,
+      hits: 0,
+      errors: 0,
+      rounds: 0,
+      stats
+    };
   }
 
   function showModes(bot) {
@@ -250,20 +211,11 @@ document.addEventListener('DOMContentLoaded', () => {
     versusLogs = JSON.parse(localStorage.getItem('versusLogs') || '[]');
     frases = embaralhar(await carregarPastas());
     botPlayers = [];
-    const playersDiv = document.getElementById('players');
-    playersDiv.innerHTML = '';
+    const rankingDiv = document.getElementById('versus-ranking');
+    rankingDiv.innerHTML = '';
     const multi = modoAtual === 2 || modoAtual === 1;
-    const imgSize = multi ? 120 : 150;
-    const barWidth = multi ? 120 : 200;
-    const userDiv = document.createElement('div');
-    userDiv.className = 'player';
-    userDiv.id = 'player-user';
-    userDiv.innerHTML = `
-      <img src="users/theuser.png" alt="the user" class="player-img" style="width:${imgSize}px;height:${imgSize}px;">
-      <div class="player-name" id="user-name">Você</div>
-      <div class="stat-bar time" style="width:${barWidth}px"><div class="fill"></div></div>
-      <div class="stat-bar acc" style="width:${barWidth}px"><div class="fill"></div></div>
-    `;
+    userPlayer = createRankingPlayer('Você', 'users/theuser.png');
+    rankingDiv.appendChild(userPlayer.element);
     if (multi) {
       const numBots = modoAtual === 1 ? 9 : 3;
       const escolha = modoAtual === 1
@@ -282,51 +234,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const score = (stats.precisao + stats.tempo) / 2;
         return { b, stats, score };
       }).sort((a, b) => b.score - a.score);
-      ordered.forEach((entry, idx) => {
-        const div = document.createElement('div');
-        div.className = 'player';
-        div.id = `bot-${idx}`;
-        div.innerHTML = `
-          <img src="users/${entry.b.file}" alt="${entry.b.name}" class="player-img" style="width:${imgSize}px;height:${imgSize}px;">
-          <div class="player-name">${entry.b.name}</div>
-          <div class="stat-bar time" style="width:${barWidth}px"><div class="fill"></div></div>
-          <div class="stat-bar acc" style="width:${barWidth}px"><div class="fill"></div></div>
-        `;
-        playersDiv.appendChild(div);
-        botPlayers.push({
-          element: div,
-          img: div.querySelector('.player-img'),
-          nameEl: div.querySelector('.player-name'),
-          name: entry.b.name,
-          stats: entry.stats,
-          accSum: 0,
-          timeSum: 0,
-          rounds: 0,
-          acc: 0,
-          tempo: 0
-        });
+      ordered.forEach(entry => {
+        const player = createRankingPlayer(entry.b.name, `users/${entry.b.file}`, entry.stats);
+        botPlayers.push(player);
+        rankingDiv.appendChild(player.element);
       });
-      playersDiv.appendChild(userDiv);
     } else {
-      playersDiv.appendChild(userDiv);
-      const div = document.createElement('div');
-      div.className = 'player';
-      div.id = 'player-bot';
-      div.innerHTML = `
-        <img id="bot-avatar" class="player-img" src="users/${botAtual.file}" alt="adversario" style="width:150px;height:150px;">
-        <div class="player-name">${botAtual.name}</div>
-        <div class="stat-bar time"><div class="fill"></div></div>
-        <div class="stat-bar acc"><div class="fill"></div></div>
-      `;
-      playersDiv.appendChild(div);
-      botImg = div.querySelector('.player-img');
-      botStats = botAtual.modes[String(modoAtual)] || { precisao: 0, tempo: 0 };
-      botPlayers = [{ element: div, img: botImg, nameEl: div.querySelector('.player-name'), name: botAtual.name, stats: botStats, accSum: 0, timeSum: 0, rounds: 0, acc: 0, tempo: 0 }];
+      const stats = botAtual.modes[String(modoAtual)] || { precisao: 0, tempo: 0 };
+      const player = createRankingPlayer(botAtual.name, `users/${botAtual.file}`, stats);
+      botPlayers.push(player);
+      rankingDiv.appendChild(player.element);
     }
-    userImg = userDiv.querySelector('.player-img');
-    userNameEl = document.getElementById('user-name');
     nextFrase();
-    updateBars();
     setTimeout(encerrar, 120000);
     if (reconhecimento) try { reconhecimento.start(); } catch (err) {}
     resetSilenceTimer();
@@ -415,13 +334,17 @@ document.addEventListener('DOMContentLoaded', () => {
     tempo = Math.max(tempo * 0.81, 0);
     totalTempo += tempo;
     totalFrases++;
+    const tempoPts = Math.max(0, 120 - tempo / 100);
+    userPlayer.score += tempoPts;
     const correto = fraseCorreta(resp, esperado);
     if (correto) {
       acertos++;
+      userPlayer.score += 5;
       flashColor('#40e0d0');
       successSound.currentTime = 0;
       successSound.play();
     } else {
+      userPlayer.score = Math.max(0, userPlayer.score - 2);
       flashColor('red');
       const old = fraseEl.textContent;
       fraseEl.textContent = capitalize(currentFrase.en);
@@ -438,113 +361,48 @@ document.addEventListener('DOMContentLoaded', () => {
       gameTime: gameElapsed
     });
     localStorage.setItem('versusLogs', JSON.stringify(versusLogs));
-    updateBars();
+    updateRanking();
     setTimeout(nextFrase, 1000);
   }
 
-  function setBar(fill, perc) {
-    fill.style.opacity = 0;
-    setTimeout(() => {
-      const width = fill.parentElement.clientWidth;
-      fill.style.width = (width * perc / 100) + 'px';
-      fill.style.backgroundColor = colorFromPercent(perc);
-      fill.style.opacity = 1;
-    }, 200);
-  }
-
-  function updateBars() {
-    userAccPerc = totalFrases ? (acertos / totalFrases * 100) : 0;
-    const avg = totalFrases ? (totalTempo / totalFrases / 1000) : 0;
-    userTimePerc = Math.max(0, 100 - avg * 20);
-    userTimePerc = Math.min(userTimePerc + 22, 100);
-    userTimePerc *= 0.92;
-    userTimePerc *= 1.1;
-    userTimePerc = Math.min(userTimePerc, 100);
-    const vary = v => v * (1 + (Math.random() * 0.25 - 0.15));
-    setBar(document.querySelector('#player-user .time .fill'), userTimePerc);
-    setBar(document.querySelector('#player-user .acc .fill'), userAccPerc);
-    const userScore = (userAccPerc + userTimePerc) / 2;
-    if (modoAtual === 2 || modoAtual === 1) {
-      botPlayers.forEach(bp => {
-        const acc = vary(bp.stats.precisao);
-        const tempo = vary(bp.stats.tempo);
-        bp.accSum += acc;
-        bp.timeSum += tempo;
-        bp.rounds++;
-        bp.acc = bp.accSum / bp.rounds;
-        bp.tempo = bp.timeSum / bp.rounds;
-        setBar(bp.element.querySelector('.time .fill'), bp.tempo);
-        setBar(bp.element.querySelector('.acc .fill'), bp.acc);
-      });
-      const entries = [
-        { element: document.getElementById('player-user'), name: 'Você', score: userScore },
-        ...botPlayers.map(bp => ({ element: bp.element, name: bp.name, score: (bp.acc + bp.tempo) / 2 }))
-      ];
-      const ordered = entries.slice().sort((a, b) => b.score - a.score);
-      if (modoAtual === 1) {
-        const userIdx = ordered.findIndex(o => o.name === 'Você');
-        let startIdx = 0;
-        if (userIdx >= 4 && userIdx <= 7) startIdx = 4;
-        else if (userIdx >= 8) startIdx = 6;
-        const display = ordered.slice(startIdx, startIdx + 4);
-        const playersDiv = document.getElementById('players');
-        playersDiv.innerHTML = '';
-        display.forEach(o => playersDiv.appendChild(o.element));
+  function updateRanking() {
+    userPlayer.hits = acertos;
+    userPlayer.errors = totalFrases - acertos;
+    userPlayer.scoreEl.textContent = Math.round(userPlayer.score);
+    userPlayer.hitsEl.textContent = userPlayer.hits;
+    userPlayer.errorsEl.textContent = userPlayer.errors;
+    botPlayers.forEach(bp => {
+      const vary = v => v * (1 + (Math.random() * 0.14 - 0.07));
+      bp.rounds++;
+      const acc = vary(bp.stats.precisao);
+      const tempo = vary(bp.stats.tempo);
+      if (Math.random() * 100 < acc) {
+        bp.hits++;
+        bp.score += tempo + 5;
       } else {
-        const playersDiv = document.getElementById('players');
-        const current = Array.from(playersDiv.children);
-        const newOrder = ordered.map(e => e.element);
-        const changed = newOrder.some((el, idx) => el !== current[idx]);
-        if (changed) {
-          current.forEach(el => { el.style.transition = 'opacity 0.5s'; el.style.opacity = '0'; });
-          setTimeout(() => {
-            ordered.forEach(o => playersDiv.appendChild(o.element));
-            ordered.forEach(o => { o.element.style.opacity = '1'; });
-          }, 500);
-        }
+        bp.errors++;
+        bp.score += Math.max(0, tempo - 5);
       }
-      const rank = ordered.map((o, i) => `${i + 1}. ${o.name}`).join(' | ');
-      document.getElementById('ranking-bottom').textContent = rank;
-    } else {
-      botAccPerc = vary(botStats.precisao);
-      botTimePerc = vary(botStats.tempo);
-      setBar(document.querySelector('#player-bot .time .fill'), botTimePerc);
-      setBar(document.querySelector('#player-bot .acc .fill'), botAccPerc);
-      const botScore = (botAccPerc + botTimePerc) / 2;
-      const ordered = [
-        { name: 'Você', score: userScore },
-        { name: botPlayers[0].name, score: botScore }
-      ].sort((a, b) => b.score - a.score);
-      document.getElementById('ranking-bottom').textContent = ordered.map((o, i) => `${i + 1}. ${o.name}`).join(' | ');
-    }
+      bp.scoreEl.textContent = Math.round(bp.score);
+      bp.hitsEl.textContent = bp.hits;
+      bp.errorsEl.textContent = bp.errors;
+    });
+    const rankingDiv = document.getElementById('versus-ranking');
+    const all = [userPlayer, ...botPlayers].sort((a, b) => b.score - a.score);
+    rankingDiv.innerHTML = '';
+    all.slice(0, 10).forEach(p => rankingDiv.appendChild(p.element));
   }
 
   function encerrar() {
     fraseEl.style.transition = 'opacity 0.5s';
     fraseEl.classList.add('dissolve');
-    const mode = modoAtual;
     modoAtual = 0;
     if (silencioTimer) clearTimeout(silencioTimer);
     if (reconhecimento) try { reconhecimento.stop(); } catch (err) {}
-    const userScore = (userAccPerc + userTimePerc) / 2;
-    localStorage.setItem('versusStats', JSON.stringify({ accuracy: userAccPerc.toFixed(2), speed: userTimePerc.toFixed(2) }));
-    if (mode === 2) {
-      const scores = botPlayers.map(bp => (bp.acc + bp.tempo) / 2);
-      const maxScore = Math.max(userScore, ...scores);
-      if (userScore < maxScore) userImg.style.opacity = '0.5';
-      botPlayers.forEach((bp, idx) => {
-        if (scores[idx] < maxScore) bp.img.style.opacity = '0.5';
-      });
-    } else {
-      const botScore = (botAccPerc + botTimePerc) / 2;
-      if (userScore > botScore) {
-        botImg.style.opacity = '0.5';
-      } else if (botScore > userScore) {
-        userImg.style.opacity = '0.5';
-      } else {
-        botImg.style.opacity = userImg.style.opacity = '0.5';
-      }
-    }
+    const accuracy = totalFrases ? (acertos / totalFrases * 100) : 0;
+    const avg = totalFrases ? (totalTempo / totalFrases / 1000) : 0;
+    const speed = Math.max(0, 100 - avg * 20);
+    localStorage.setItem('versusStats', JSON.stringify({ accuracy: accuracy.toFixed(2), speed: speed.toFixed(2) }));
   }
 });
 
