@@ -611,14 +611,6 @@ body.dark-mode #clock {
   margin-left:auto;
   margin-right:auto;
 }
-#versus-ranking {
-  margin-top:20px;
-  display:flex;
-  flex-direction:column;
-  width:fit-content;
-  margin-left:auto;
-  margin-right:auto;
-}
 .ranking-row {
   display:flex;
   align-items:center;
@@ -640,13 +632,6 @@ body.dark-mode #clock {
   font-weight:700;
   font-size:25px;
   font-family:'Open Sans', sans-serif;
-}
-.rank-hits,
-.rank-errors {
-  font-weight:700;
-  font-size:15px;
-  font-family:'Open Sans', sans-serif;
-  margin-left:10px;
 }
 
 #bot-list {
