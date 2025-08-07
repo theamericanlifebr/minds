@@ -687,30 +687,58 @@ body.dark-mode #clock {
   padding-bottom: 20px;
 }
 
+
 #players {
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 100px;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 30px;
 }
 
+.player {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.player-pos {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  width: 30px;
+  text-align: right;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .player-img {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   object-fit: cover;
 }
 
 .stat-bar {
-  width: 200px;
-  height: 25px;
+  width: 120px;
+  height: 20px;
   background: #333;
-  margin: 15px auto 0;
+  margin: 10px 0 0 0;
   border-radius: 0;
 }
 
 .stat-bar + .stat-bar {
-  margin-top: 15px;
+  margin-top: 10px;
+}
+
+.player-score {
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  margin-left: 10px;
 }
 
 .stat-bar .fill {
