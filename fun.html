@@ -29,9 +29,12 @@
         const score = (avgAcc + avgTempo) / 2;
         return { name: b.name, file: b.file, score };
       });
+      const SPEED_FACTOR = 50 / 81.72;
+      const scaleSpeed = v => v * SPEED_FACTOR;
       const vsStats = JSON.parse(localStorage.getItem('versusStats') || '{}');
       const userAcc = parseFloat(vsStats.accuracy) || 0;
-      const userTempo = parseFloat(vsStats.speed) || 0;
+      let userTempo = parseFloat(vsStats.speed) || 0;
+      if (userTempo > 61) userTempo = scaleSpeed(userTempo);
       const userScore = (userAcc + userTempo) / 2;
       entries.push({ name: 'Você', file: 'theuser.png', score: userScore });
       entries.sort((a, b) => b.score - a.score);
