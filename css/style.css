@@ -276,6 +276,36 @@ body.dark-mode #clock {
   transition: width 1.5s linear, background-color 1.5s linear;
 }
 
+#barra-progresso.circular {
+  width: 450px;
+  height: 450px;
+  border-radius: 50%;
+  margin: 0 auto;
+  border: 30px solid transparent;
+  position: relative;
+  transform: none;
+}
+
+#barra-progresso.circular #barra-preenchida {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transition: none;
+  background: conic-gradient(var(--bar-color, #ff0000) calc(var(--perc, 0) * 1deg), #333 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 30px), #000 calc(100% - 30px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 30px), #000 calc(100% - 30px));
+}
+
+#barra-progresso.circular #imagem-modo7 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 350px;
+  height: 350px;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+}
+
 #mode-stats,
 #texto-exibicao,
 #barra-progresso {
