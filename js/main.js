@@ -247,12 +247,14 @@ const timeScoreBases = {
 
 const TIME_POINT_REFS = {
   1: 125,
-  2: 124,
-  3: 126,
-  4: 105,
+  2: 95,
+  3: 95,
+  4: 100,
   5: 100,
-  6: 120
+  6: 95
 };
+
+const SPEED_SCALE = 70 / 81.72;
 
 function getTimeMetrics(len, mode) {
   const base = timeScoreBases[mode];
@@ -804,7 +806,8 @@ function calcModeStats(mode) {
   const accPerc = total ? (correct / total * 100) : 0;
   const avg = total ? (totalTime / total / 1000) : 0;
   const ref = TIME_POINT_REFS[mode] || 100;
-  const timePerc = total ? ((timePts / total) / ref) * 100 : 0;
+  let timePerc = total ? ((timePts / total) / ref) * 100 : 0;
+  timePerc *= SPEED_SCALE;
   const notReportPerc = total ? (100 - (report / total * 100)) : 100;
   return { accPerc, timePerc, avg, notReportPerc };
 }
@@ -1510,10 +1513,10 @@ function finishMode() {
     const total = stats6.totalPhrases || 0;
     const acc = total ? (stats6.correct / total * 100).toFixed(2) : '0';
     const avgPts = total ? (stats6.timePoints / total) : 0;
-    const speedPerc = (avgPts / (TIME_POINT_REFS[6] || 100)) * 100;
+    const speedPerc = ((avgPts / (TIME_POINT_REFS[6] || 100)) * 100) * SPEED_SCALE;
     const reportPerc = total ? (stats6.report / total * 100).toFixed(2) : '0';
     const details = JSON.parse(localStorage.getItem('levelDetails') || '[]');
-    details.push({ level: pastaAtual + 1, accuracy: acc, speed: speedPerc.toFixed(2), reports: reportPerc });
+    details.push({ level: pastaAtual + 1, accuracy: acc, speed: speedPerc.toFixed(2), reports: reportPerc, scaled: true });
     localStorage.setItem('levelDetails', JSON.stringify(details));
     document.querySelectorAll('#menu-modes img[data-mode="6"], #mode-buttons img[data-mode="6"]').forEach(img => {
       img.src = 'selos%20modos%20de%20jogo/modostar.png';

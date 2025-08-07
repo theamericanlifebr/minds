@@ -43,15 +43,17 @@
     }
     document.addEventListener('DOMContentLoaded', () => {
       const container = document.getElementById('custom-content');
+      const SPEED_SCALE = 70 / 81.72;
       const vsStats = JSON.parse(localStorage.getItem('versusStats') || '{}');
+      const vsSpeed = vsStats.scaled ? vsStats.speed : (vsStats.speed ? (vsStats.speed * SPEED_SCALE).toFixed(2) : 0);
       const vsSection = document.createElement('div');
       vsSection.innerHTML = `
         <h1 class="custom-title">Versus - Estatísticas</h1>
         <div class="custom-info">Precisão: ${vsStats.accuracy || 0}%</div>
-        <div class="custom-info">Velocidade: ${vsStats.speed || 0}%</div>
+        <div class="custom-info">Velocidade: ${vsSpeed || 0}%</div>
       `;
       container.appendChild(vsSection);
-      const TIME_POINT_REFS = { 1:125, 2:124, 3:126, 4:105, 5:100, 6:120 };
+      const TIME_POINT_REFS = { 1:125, 2:95, 3:95, 4:100, 5:100, 6:95 };
       const statsData = JSON.parse(localStorage.getItem('modeStats') || '{}');
       for (let i = 1; i <= 6; i++) {
         const stats = statsData[i] || {};
@@ -64,7 +66,7 @@
         const avg = total ? formatTime(totalTime / total) : '0s';
         const timePts = stats.timePoints || 0;
         const ref = TIME_POINT_REFS[i] || 100;
-        const avgPts = total ? ((timePts / total) / ref * 100).toFixed(2) : '0';
+        const avgPts = total ? (((timePts / total) / ref * 100) * SPEED_SCALE).toFixed(2) : '0';
         const reportPerc = total ? ((report / total) * 100).toFixed(2) : '0';
         const section = document.createElement('div');
         section.innerHTML = `
@@ -119,7 +121,8 @@
         table.appendChild(header);
         details.forEach(d => {
           const row = document.createElement('tr');
-          row.innerHTML = `<td>${d.level}</td><td>${d.accuracy}%</td><td>${d.speed}%</td><td>${d.reports}%</td>`;
+          const spd = d.scaled ? d.speed : (d.speed ? (d.speed * SPEED_SCALE).toFixed(2) : d.speed);
+          row.innerHTML = `<td>${d.level}</td><td>${d.accuracy}%</td><td>${spd}%</td><td>${d.reports}%</td>`;
           table.appendChild(row);
         });
         container.appendChild(table);
