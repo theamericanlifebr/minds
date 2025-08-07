@@ -59,9 +59,6 @@ const TIME_POINT_REFS = {
   6: 120
 };
 
-const SPEED_FACTOR = 50 / 81.72;
-const scaleSpeed = v => v * SPEED_FACTOR;
-
 let frasesCorretas = {};
 
 async function carregarFrasesCorretas() {
@@ -486,7 +483,6 @@ document.addEventListener('DOMContentLoaded', () => {
     userTimePerc *= 0.92;
     userTimePerc *= 1.1;
     userTimePerc = Math.min(userTimePerc, 100);
-    userTimePerc = scaleSpeed(userTimePerc);
     const vary = v => v * (1 + (Math.random() * 0.25 - 0.15));
     setBar(userPlayer.element.querySelector('.time .fill'), userTimePerc);
     setBar(userPlayer.element.querySelector('.acc .fill'), userAccPerc);
@@ -496,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userScore = userTimePts + acertos - userErrors;
     botPlayers.forEach(bp => {
       const acc = vary(bp.stats.precisao);
-      const tempo = scaleSpeed(vary(bp.stats.tempo));
+      const tempo = vary(bp.stats.tempo);
       bp.accSum += acc;
       bp.timeSum += tempo;
       bp.rounds++;
