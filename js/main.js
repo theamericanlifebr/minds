@@ -340,7 +340,13 @@ const modeImages = {
   3: 'selos%20modos%20de%20jogo/modo3.png',
   4: 'selos%20modos%20de%20jogo/modo4.png',
   5: 'selos%20modos%20de%20jogo/modo5.png',
-  6: 'selos%20modos%20de%20jogo/modo6.png'
+  6: 'selos%20modos%20de%20jogo/modo6.png',
+  7: 'selos%20modos%20de%20jogo/modo7.png',
+  8: 'selos%20modos%20de%20jogo/modo8.png',
+  9: 'selos%20modos%20de%20jogo/modo9.png',
+ 10: 'selos%20modos%20de%20jogo/modo10.png',
+ 11: 'selos%20modos%20de%20jogo/modo11.png',
+ 12: 'selos%20modos%20de%20jogo/modo12.png'
 };
 
 const modeTransitions = {
