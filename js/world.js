@@ -46,11 +46,13 @@ async function carregarImagens() {
   const files = await resp.json();
   const items = files.map(f => {
     const base = f.replace(/\.[^.]+$/, '');
-    const [pt, en] = base.split('#').map(s => s.trim());
-    return { pt, en, src: `photos/${f}` };
+    const parts = base.split('#');
+    const pt = parts[0] ? parts[0].trim() : '';
+    const nomeFoto = (parts[1] || parts[0] || '').trim();
+    return { pt, nomeFoto, src: `photos/${f}` };
   });
   const embaralhado = embaralhar(items);
-  frasesArr = embaralhado.map(i => [i.pt, i.en]);
+  frasesArr = embaralhado.map(i => [i.pt, i.nomeFoto]);
   imageArr = embaralhado.map(i => i.src);
   fraseIndex = 0;
   setTimeout(() => mostrarFrase(), 300);
@@ -1222,8 +1224,8 @@ function showShortModeIntro(modo, callback) {
 
 function falarFrase() {
   if (frasesArr[fraseIndex]) {
-    const [, en] = frasesArr[fraseIndex];
-    falar(en, 'en');
+    const [, nomeFoto] = frasesArr[fraseIndex];
+    falar(nomeFoto, 'en');
   }
 }
 
@@ -1271,6 +1273,7 @@ function mostrarFrase() {
   if (inputTimeout) clearTimeout(inputTimeout);
   if (fraseIndex >= frasesArr.length) fraseIndex = 0;
   const [pt, en] = frasesArr[fraseIndex];
+  const nomeFoto = en;
   const texto = document.getElementById("texto-exibicao");
   const img = document.getElementById('imagem-modo7');
   const modeIcon = document.getElementById('mode-icon');
@@ -1288,7 +1291,7 @@ function mostrarFrase() {
       modeIcon.style.display = 'block';
       modeIcon.style.opacity = 1;
     }
-    if (texto) texto.textContent = en;
+    if (texto) texto.textContent = nomeFoto;
     if (photoTimeout) clearTimeout(photoTimeout);
     photoTimeout = setTimeout(() => {
       const inputEl = document.getElementById('pt');
@@ -1306,7 +1309,7 @@ function mostrarFrase() {
   }
   document.getElementById("pt").value = '';
   document.getElementById("pt").disabled = false;
-  if (voz === 'en') falar(en, 'en');
+  if (voz === 'en') falar(nomeFoto, 'en');
   else if (voz === 'pt') falar(pt, 'pt');
   bloqueado = false;
   if (timerInterval) clearInterval(timerInterval);
@@ -1414,9 +1417,10 @@ function verificarResposta() {
   const stats = ensureModeStats(selectedMode);
 
   const [pt, en] = frasesArr[fraseIndex];
+  const nomeFoto = en;
 
   const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
-  const esperado = esperadoLang === 'pt' ? pt : en;
+  const esperado = esperadoLang === 'pt' ? pt : nomeFoto;
   const expectedPhrase = esperado;
   const respostaCorrigida = aplicarFrasesCorretas(resposta);
   const esperadoCorrigido = aplicarFrasesCorretas(esperado);
