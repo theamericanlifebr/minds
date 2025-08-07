@@ -51,6 +51,7 @@
         <div class="custom-info">Velocidade: ${vsStats.speed || 0}%</div>
       `;
       container.appendChild(vsSection);
+      const TIME_POINT_REFS = { 1:125, 2:124, 3:126, 4:105, 5:100, 6:120 };
       const statsData = JSON.parse(localStorage.getItem('modeStats') || '{}');
       for (let i = 1; i <= 6; i++) {
         const stats = statsData[i] || {};
@@ -62,7 +63,8 @@
         const acc = total ? ((correct / total) * 100).toFixed(2) : '0';
         const avg = total ? formatTime(totalTime / total) : '0s';
         const timePts = stats.timePoints || 0;
-        const avgPts = total ? (timePts / total).toFixed(2) : '0';
+        const ref = TIME_POINT_REFS[i] || 100;
+        const avgPts = total ? ((timePts / total) / ref * 100).toFixed(2) : '0';
         const reportPerc = total ? ((report / total) * 100).toFixed(2) : '0';
         const section = document.createElement('div');
         section.innerHTML = `

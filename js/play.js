@@ -96,6 +96,14 @@ function createStatCircle(perc, label, iconSrc, extraText) {
   }
   return wrapper;
 }
+const TIME_POINT_REFS = {
+  1: 125,
+  2: 124,
+  3: 126,
+  4: 105,
+  5: 100,
+  6: 120
+};
 
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('play-content');
@@ -123,7 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const timePts = stats.timePoints || 0;
     const accPerc = total ? (correct / total * 100) : 0;
     const avg = total ? (totalTime / total / 1000) : 0;
-    const timePerc = total ? (timePts / total) : 0;
+    const ref = TIME_POINT_REFS[mode] || 100;
+    const timePerc = total ? ((timePts / total) / ref) * 100 : 0;
     const notReportPerc = total ? (100 - (report / total * 100)) : 100;
     return { accPerc, timePerc, avg, notReportPerc };
   }
