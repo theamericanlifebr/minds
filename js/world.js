@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let images = [];
   let currentExpected = '';
   let recognition;
+  let intervalId;
 
   async function loadImages() {
     const resp = await fetch('/photos/list');
@@ -51,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
     resultEl.textContent = correct ? 'correto' : 'errado';
     setTimeout(() => {
       resultEl.textContent = '';
-      nextImage();
     }, 1000);
   }
 
@@ -84,9 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const mode = btn.getAttribute('data-mode');
       if (mode === '7') {
         menu.style.display = 'none';
-        game.style.display = 'block';
+        game.style.display = 'flex';
         await loadImages();
         nextImage();
+        intervalId = setInterval(nextImage, 6000);
       }
     });
   });
