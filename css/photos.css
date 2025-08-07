@@ -1,6 +1,5 @@
 body {
   margin: 0;
-  background-color: #fff;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -8,6 +7,17 @@ body {
   min-height: 100vh;
   font-family: 'Open Sans', sans-serif;
   color: #000;
+  position: relative;
+}
+
+#background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  z-index: -1;
 }
 
 #slideshow-image {
