@@ -254,6 +254,18 @@ const TIME_POINT_REFS = {
   6: 120
 };
 
+const SPEED_FACTOR = 50 / 81.72;
+const scaleSpeed = v => v * SPEED_FACTOR;
+function adjustTimePoints(mode, value) {
+  const mapping = { 2: {125: 95}, 3: {126: 95}, 4: {110: 100}, 6: {120: 95} };
+  const m = mapping[mode];
+  if (m) {
+    const rounded = Math.round(value);
+    if (m[rounded] !== undefined) return m[rounded];
+  }
+  return value;
+}
+
 function getTimeMetrics(len, mode) {
   const base = timeScoreBases[mode];
   if (!base) return { perfect: 0, worst: 0 };
@@ -804,7 +816,9 @@ function calcModeStats(mode) {
   const accPerc = total ? (correct / total * 100) : 0;
   const avg = total ? (totalTime / total / 1000) : 0;
   const ref = TIME_POINT_REFS[mode] || 100;
-  const timePerc = total ? ((timePts / total) / ref) * 100 : 0;
+  let timePerc = total ? ((timePts / total) / ref) * 100 : 0;
+  timePerc = adjustTimePoints(mode, timePerc);
+  timePerc = scaleSpeed(timePerc);
   const notReportPerc = total ? (100 - (report / total * 100)) : 100;
   return { accPerc, timePerc, avg, notReportPerc };
 }
@@ -1510,7 +1524,9 @@ function finishMode() {
     const total = stats6.totalPhrases || 0;
     const acc = total ? (stats6.correct / total * 100).toFixed(2) : '0';
     const avgPts = total ? (stats6.timePoints / total) : 0;
-    const speedPerc = (avgPts / (TIME_POINT_REFS[6] || 100)) * 100;
+    let speedPerc = (avgPts / (TIME_POINT_REFS[6] || 100)) * 100;
+    speedPerc = adjustTimePoints(6, speedPerc);
+    speedPerc = scaleSpeed(speedPerc);
     const reportPerc = total ? (stats6.report / total * 100).toFixed(2) : '0';
     const details = JSON.parse(localStorage.getItem('levelDetails') || '[]');
     details.push({ level: pastaAtual + 1, accuracy: acc, speed: speedPerc.toFixed(2), reports: reportPerc });
