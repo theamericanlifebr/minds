@@ -25,17 +25,6 @@
     <img src="selos%20modos%20de%20jogo/modo12.png" alt="Modo 12" data-color="#40E0D0">
   </div>
   <div id="color-screen"></div>
-  <script>
-    document.querySelectorAll('.explore-grid img').forEach(img => {
-      img.addEventListener('click', () => {
-        const overlay = document.getElementById('color-screen');
-        overlay.style.backgroundColor = img.dataset.color;
-        overlay.style.display = 'block';
-      });
-    });
-    document.getElementById('color-screen').addEventListener('click', function() {
-      this.style.display = 'none';
-    });
-  </script>
+  <script src="js/explore.js"></script>
 </body>
 </html>
