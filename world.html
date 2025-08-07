@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="dark-mode">
+<body class="world-black">
   <nav id="top-nav">
     <a href="index.html">home</a>
     <a href="fun.html">fun</a>
@@ -26,5 +26,10 @@
       <img src="selos%20modos%20de%20jogo/modo12.png" data-mode="12" alt="Modo 12">
     </div>
   </div>
+  <div id="world-game" style="display:none;text-align:center;margin-top:50px;">
+    <img id="world-image" style="max-width:80%;opacity:0;transition:opacity 0.5s;" alt="">
+    <div id="world-result"></div>
+  </div>
+  <script src="js/world.js"></script>
 </body>
 </html>
