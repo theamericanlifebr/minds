@@ -52,50 +52,7 @@ body.versus-white {
   overflow-x: hidden;
 }
 
-body.world-black {
-  background: #000;
-  color: #fff;
-}
 
-body.world-black #top-nav {
-  background: linear-gradient(90deg, #006666, #008080);
-}
-
-body.world-black #top-nav a {
-  color: #fff;
-}
-
-body.world-white {
-  background: linear-gradient(to bottom, #ffffff, #d0d0d0);
-  color: #555;
-}
-
-body.world-white #top-nav {
-  background: linear-gradient(90deg, #e0e0e0, #f5f5f5);
-}
-
-body.world-white #top-nav a {
-  color: #555;
-}
-
-body.world-blue {
-  background: linear-gradient(to bottom, #40e0d0, #0066cc);
-  color: #fff;
-}
-
-body.world-blue #top-nav {
-  background: linear-gradient(90deg, #40e0d0, #0066cc);
-}
-
-body.world-blue #top-nav a {
-  color: #fff;
-}
-
-body.world-blue,
-body.world-white {
-  overflow-y: auto;
-  overflow-x: hidden;
-}
 
 body.dark-mode #pt,
 body.dark-mode #texto-exibicao,
@@ -644,6 +601,37 @@ body.dark-mode #clock {
 }
 .ranking-table.lime {
   color: lime;
+}
+
+#fun-content {
+  margin-top:50px;
+  display:flex;
+  flex-direction:column;
+  width:fit-content;
+  margin-left:auto;
+  margin-right:auto;
+}
+.ranking-row {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.ranking-row img {
+  width:50px;
+  height:50px;
+  border-radius:50%;
+}
+.rank-name {
+  font-weight:700;
+  font-size:15px;
+  font-family:'Open Sans', sans-serif;
+  margin-right:auto;
+}
+.rank-score {
+  font-weight:700;
+  font-size:25px;
+  font-family:'Open Sans', sans-serif;
 }
 
 #bot-list {
