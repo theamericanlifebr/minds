@@ -247,6 +247,7 @@ let voz = 'en';
 let esperadoLang = 'pt';
 let timerInterval = null;
 let inputTimeout = null;
+let photoTimeout = null;
 let lastExpected = '', lastInput = '', lastFolder = 1;
 const TOTAL_FRASES = 25;
 let selectedMode = 1;
@@ -437,6 +438,10 @@ function stopCurrentGame() {
   if (prizeTimer) {
     clearInterval(prizeTimer);
     prizeTimer = null;
+  }
+  if (photoTimeout) {
+    clearTimeout(photoTimeout);
+    photoTimeout = null;
   }
   if (reconhecimento) {
     reconhecimentoAtivo = false;
@@ -1088,12 +1093,18 @@ function beginGame() {
     document.getElementById('visor').style.display = 'flex';
     const icon = document.getElementById('mode-icon');
     if (icon) {
-      icon.src = modeImages[selectedMode];
-      const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
-      const ratio = Math.max(0, Math.min(points, threshold)) / threshold;
-      icon.style.opacity = ratio;
-      icon.style.display = 'block';
-      icon.onclick = () => { if (paused) resumeGame(); };
+      if (selectedMode === 2) {
+        icon.style.display = 'block';
+        icon.style.opacity = 1;
+        icon.onclick = () => { if (paused) resumeGame(); };
+      } else {
+        icon.src = modeImages[selectedMode];
+        const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
+        const ratio = Math.max(0, Math.min(points, threshold)) / threshold;
+        icon.style.opacity = ratio;
+        icon.style.display = 'block';
+        icon.onclick = () => { if (paused) resumeGame(); };
+      }
     }
     updateGeneralCircles();
     const texto = document.getElementById('texto-exibicao');
@@ -1107,8 +1118,8 @@ function beginGame() {
         esperadoLang = 'pt';
         break;
     case 2:
-      mostrarTexto = 'pt';
-      voz = 'en';
+      mostrarTexto = 'en';
+      voz = null;
       esperadoLang = 'en';
       break;
     case 3:
@@ -1228,7 +1239,7 @@ function embaralhar(array) {
 }
 
 function carregarFrases() {
-  if (selectedMode === 1) {
+  if (selectedMode === 1 || selectedMode === 2) {
     carregarImagens();
     return;
   }
@@ -1262,14 +1273,33 @@ function mostrarFrase() {
   const [pt, en] = frasesArr[fraseIndex];
   const texto = document.getElementById("texto-exibicao");
   const img = document.getElementById('imagem-modo7');
+  const modeIcon = document.getElementById('mode-icon');
   if (selectedMode === 1) {
     if (img) {
       img.src = imageArr[fraseIndex];
       img.style.display = 'block';
     }
+    if (modeIcon) modeIcon.style.display = 'none';
     if (texto) texto.textContent = '';
+  } else if (selectedMode === 2) {
+    if (img) img.style.display = 'none';
+    if (modeIcon) {
+      modeIcon.src = imageArr[fraseIndex];
+      modeIcon.style.display = 'block';
+      modeIcon.style.opacity = 1;
+    }
+    if (texto) texto.textContent = en;
+    if (photoTimeout) clearTimeout(photoTimeout);
+    photoTimeout = setTimeout(() => {
+      const inputEl = document.getElementById('pt');
+      if (inputEl) {
+        inputEl.value = '[no input]';
+        verificarResposta();
+      }
+    }, 6200);
   } else {
     if (img) img.style.display = 'none';
+    if (modeIcon) modeIcon.src = modeImages[selectedMode];
     if (mostrarTexto === 'pt') texto.textContent = pt;
     else if (mostrarTexto === 'en') texto.textContent = en;
     else texto.textContent = '';
@@ -1297,7 +1327,7 @@ function mostrarFrase() {
       reconhecimento.start();
     }, 500);
   }
-  if (selectedMode >= 2) {
+  if (selectedMode >= 2 && selectedMode !== 2) {
     inputTimeout = setTimeout(handleNoInput, 6000);
   }
 }
@@ -1344,6 +1374,7 @@ function handleNoInput() {
 function verificarResposta() {
   if (bloqueado) return;
   if (inputTimeout) clearTimeout(inputTimeout);
+  if (photoTimeout) clearTimeout(photoTimeout);
   if (timerInterval) clearInterval(timerInterval);
   const input = document.getElementById("pt");
   const resposta = input.value.trim();
@@ -1493,7 +1524,7 @@ function atualizarBarraProgresso() {
   }
   updateGradientColor(barColor);
   const icon = document.getElementById('mode-icon');
-  if (icon) {
+  if (icon && selectedMode !== 2) {
     icon.style.opacity = perc / 100;
   }
 }
