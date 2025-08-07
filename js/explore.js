@@ -16,11 +16,23 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   let countdownInterval = null;
+  let slideshowInterval = null;
+  let currentPhoto = null;
+
+  function stopSlideshow() {
+    if (slideshowInterval) {
+      clearInterval(slideshowInterval);
+      slideshowInterval = null;
+    }
+    currentPhoto = null;
+    photoEl.style.display = 'none';
+    photoEl.style.opacity = 0;
+  }
 
   function hideOverlay() {
     overlay.style.display = 'none';
     countdownEl.style.display = 'none';
-    photoEl.style.display = 'none';
+    stopSlideshow();
     if (countdownInterval) {
       clearInterval(countdownInterval);
       countdownInterval = null;
@@ -28,18 +40,40 @@ document.addEventListener('DOMContentLoaded', () => {
     overlay.onclick = null;
   }
 
+  function nextPhoto(first = false) {
+    let next;
+    do {
+      next = photos[Math.floor(Math.random() * photos.length)];
+    } while (next === currentPhoto && photos.length > 1);
+    currentPhoto = next;
+
+    if (!first) {
+      photoEl.style.opacity = 0;
+    }
+    setTimeout(() => {
+      photoEl.src = 'photos/' + encodeURIComponent(next);
+      photoEl.onload = () => {
+        photoEl.style.opacity = 1;
+      };
+    }, first ? 0 : 500);
+  }
+
+  function startSlideshow() {
+    photoEl.style.display = 'block';
+    nextPhoto(true);
+    slideshowInterval = setInterval(() => nextPhoto(), 3000);
+  }
+
   function showOverlay(color, isMode7) {
     overlay.style.backgroundColor = color;
     overlay.style.display = 'block';
 
     if (isMode7) {
-      let timeLeft = 10;
+      let timeLeft = 60;
       countdownEl.textContent = timeLeft;
       countdownEl.style.display = 'block';
 
-      const randomPhoto = photos[Math.floor(Math.random() * photos.length)];
-      photoEl.src = 'photos/' + encodeURIComponent(randomPhoto);
-      photoEl.style.display = 'block';
+      startSlideshow();
 
       countdownInterval = setInterval(() => {
         timeLeft--;
@@ -52,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
       overlay.onclick = null;
     } else {
       countdownEl.style.display = 'none';
-      photoEl.style.display = 'none';
+      stopSlideshow();
       overlay.onclick = hideOverlay;
     }
   }
