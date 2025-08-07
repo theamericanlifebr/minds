@@ -245,6 +245,15 @@ const timeScoreBases = {
   6: {6: [2.36, 5.78], 33: [3.84, 8.03]}
 };
 
+const TIME_POINT_REFS = {
+  1: 125,
+  2: 124,
+  3: 126,
+  4: 105,
+  5: 100,
+  6: 120
+};
+
 function getTimeMetrics(len, mode) {
   const base = timeScoreBases[mode];
   if (!base) return { perfect: 0, worst: 0 };
@@ -794,7 +803,8 @@ function calcModeStats(mode) {
   const timePts = stats.timePoints || 0;
   const accPerc = total ? (correct / total * 100) : 0;
   const avg = total ? (totalTime / total / 1000) : 0;
-  const timePerc = total ? (timePts / total) : 0;
+  const ref = TIME_POINT_REFS[mode] || 100;
+  const timePerc = total ? ((timePts / total) / ref) * 100 : 0;
   const notReportPerc = total ? (100 - (report / total * 100)) : 100;
   return { accPerc, timePerc, avg, notReportPerc };
 }
@@ -1389,7 +1399,8 @@ function verificarResposta() {
   if (selectedMode >= 2) {
     const { perfect, worst } = getTimeMetrics(phraseLen, selectedMode);
     const elapsedSec = elapsed / 1000;
-    timePoints = ((worst - elapsedSec) / (worst - perfect)) * 100;
+    const ref = TIME_POINT_REFS[selectedMode] || 100;
+    timePoints = ((worst - elapsedSec) / (worst - perfect)) * ref;
     if (timePoints < 0) timePoints = 0;
   }
 
@@ -1499,9 +1510,10 @@ function finishMode() {
     const total = stats6.totalPhrases || 0;
     const acc = total ? (stats6.correct / total * 100).toFixed(2) : '0';
     const avgPts = total ? (stats6.timePoints / total) : 0;
+    const speedPerc = (avgPts / (TIME_POINT_REFS[6] || 100)) * 100;
     const reportPerc = total ? (stats6.report / total * 100).toFixed(2) : '0';
     const details = JSON.parse(localStorage.getItem('levelDetails') || '[]');
-    details.push({ level: pastaAtual + 1, accuracy: acc, speed: avgPts.toFixed(2), reports: reportPerc });
+    details.push({ level: pastaAtual + 1, accuracy: acc, speed: speedPerc.toFixed(2), reports: reportPerc });
     localStorage.setItem('levelDetails', JSON.stringify(details));
     document.querySelectorAll('#menu-modes img[data-mode="6"], #mode-buttons img[data-mode="6"]').forEach(img => {
       img.src = 'selos%20modos%20de%20jogo/modostar.png';
