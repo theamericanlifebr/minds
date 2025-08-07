@@ -1,3 +1,4 @@
+// World mode 7: show random photos with fade-in and check spoken names
 document.addEventListener('DOMContentLoaded', () => {
   const menu = document.getElementById('menu');
   const game = document.getElementById('world-game');
