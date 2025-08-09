@@ -89,35 +89,34 @@ let allowInput = true;
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!isMobile) {
-    reconhecimento = new SpeechRecognition();
-    reconhecimento.lang = 'en-US';
-    reconhecimento.continuous = true;
-    reconhecimento.interimResults = false;
+  reconhecimento = new SpeechRecognition();
+  reconhecimento.lang = 'en-US';
+  reconhecimento.continuous = true;
+  reconhecimento.interimResults = false;
 
-    reconhecimento.onstart = () => {
-      reconhecimentoRodando = true;
-    };
+  reconhecimento.onstart = () => {
+    reconhecimentoRodando = true;
+  };
 
-    reconhecimento.onresult = (event) => {
-      const transcript = event.results[event.results.length - 1][0].transcript.trim();
-      const normCmd = transcript.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      if (ilifeActive) {
-        if (normCmd.includes('play')) {
-          ilifeActive = false;
-          localStorage.setItem('ilifeDone', 'true');
-          const screen = document.getElementById('ilife-screen');
-          const menu = document.getElementById('menu');
-          if (screen) screen.style.display = 'none';
-          if (menu) menu.style.display = 'flex';
-          if (!tutorialDone) {
-            startTutorial();
-          }
+  reconhecimento.onresult = (event) => {
+    const transcript = event.results[event.results.length - 1][0].transcript.trim();
+    const normCmd = transcript.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (ilifeActive) {
+      if (normCmd.includes('play')) {
+        ilifeActive = false;
+        localStorage.setItem('ilifeDone', 'true');
+        const screen = document.getElementById('ilife-screen');
+        const menu = document.getElementById('menu');
+        if (screen) screen.style.display = 'none';
+        if (menu) menu.style.display = 'flex';
+        if (!tutorialDone) {
+          startTutorial();
         }
-        return;
       }
-      if (awaitingNextLevel) {
-        if (normCmd.includes('level') || normCmd.includes('next') || normCmd.includes('game')) {
+      return;
+    }
+    if (awaitingNextLevel) {
+      if (normCmd.includes('level') || normCmd.includes('next') || normCmd.includes('game')) {
           awaitingNextLevel = false;
           if (nextLevelCallback) {
             const cb = nextLevelCallback;
@@ -172,8 +171,24 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       reconhecimentoRodando = false;
       if (reconhecimentoAtivo) reconhecimento.start();
     };
-  }
+
+    const micBtn = document.getElementById('mic-button');
+    if (micBtn) {
+      micBtn.addEventListener('click', () => {
+        if (reconhecimentoRodando) {
+          reconhecimentoAtivo = false;
+          reconhecimento.stop();
+          micBtn.classList.remove('active');
+        } else {
+          reconhecimentoAtivo = true;
+          try { reconhecimento.start(); } catch (e) {}
+          micBtn.classList.add('active');
+        }
+      });
+    }
 } else {
+  const micBtn = document.getElementById('mic-button');
+  if (micBtn) micBtn.style.display = 'none';
   alert('Reconhecimento de voz não é suportado neste navegador. Use o Chrome.');
 }
 
