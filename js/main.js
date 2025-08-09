@@ -89,6 +89,8 @@ let allowInput = true;
 let silenceTimer;
 let awaitingTap = false;
 let pausedBySilence = false;
+const secretSequence = [4, 5, 4, 5, 6];
+let inputSequence = [];
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -350,6 +352,17 @@ function toggleDarkMode() {
 
 applyColorMode();
 
+function toggleTheme() {
+  const body = document.body;
+  if (body.classList.contains('versus-blue')) {
+    body.classList.remove('versus-blue');
+    body.classList.add('versus-white');
+  } else {
+    body.classList.remove('versus-white');
+    body.classList.add('versus-blue');
+  }
+}
+
 const reportClickHandler = () => {
   if (downPlaying) handleReportClick();
 };
@@ -596,6 +609,8 @@ function updateLevelIcon() {
       icon.style.opacity = '1';
     }, 500);
   }
+  const levelText = document.getElementById('menu-level');
+  if (levelText) levelText.textContent = `Nivel ${pastaAtual}`;
   localStorage.setItem('pastaAtual', pastaAtual);
 }
 
@@ -1274,6 +1289,11 @@ function mostrarFrase() {
   if (selectedMode >= 2) {
     inputTimeout = setTimeout(handleNoInput, 6000);
   }
+  if (reconhecimento) {
+    reconhecimentoAtivo = true;
+    try { reconhecimento.start(); } catch (e) {}
+    if (isMobile) resetSilenceTimer();
+  }
 }
 
 function flashSuccess(callback) {
@@ -1656,6 +1676,10 @@ function startTutorial() {
 async function initGame() {
   const saved = parseInt(localStorage.getItem('pastaAtual'), 10);
   if (saved) pastaAtual = saved;
+  if (isMobile) {
+    document.body.classList.remove('dark-mode');
+    document.body.classList.add('versus-blue');
+  }
   await carregarPastas();
   await carregarFrasesCorretas();
   updateLevelIcon();
@@ -1695,8 +1719,15 @@ async function initGame() {
 
   document.querySelectorAll('#mode-buttons img, #menu-modes img').forEach(img => {
     img.addEventListener('click', () => {
-      stopCurrentGame();
       const modo = parseInt(img.dataset.mode, 10);
+      if (img.closest('#menu-modes')) {
+        inputSequence.push(modo);
+        if (inputSequence.length > secretSequence.length) inputSequence.shift();
+        if (secretSequence.every((v, i) => inputSequence[i] === v)) {
+          for (let m = 1; m <= 6; m++) unlockMode(m, 500);
+        }
+      }
+      stopCurrentGame();
       if (modo === 6 && completedModes[6] && levelUpReady) {
         performMenuLevelUp();
         return;
@@ -1767,6 +1798,32 @@ async function initGame() {
       }
     }
     await initGame();
+    if (isMobile) {
+      let startX = 0, startY = 0;
+      document.addEventListener('touchstart', e => {
+        const t = e.changedTouches[0];
+        startX = t.screenX;
+        startY = t.screenY;
+      }, { passive: true });
+      document.addEventListener('touchend', e => {
+        const t = e.changedTouches[0];
+        const dx = t.screenX - startX;
+        const dy = t.screenY - startY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+          if (dx > 0) {
+            toggleTheme();
+          } else {
+            reportLastError();
+          }
+        } else if (Math.abs(dy) > 50 && dy < 0) {
+          if (reconhecimento) {
+            reconhecimentoAtivo = true;
+            try { reconhecimento.start(); } catch (err) {}
+            resetSilenceTimer();
+          }
+        }
+      });
+    }
     const tapArea = document.getElementById('ilife-screen');
     if (tapArea) {
       let tapCount = 0;
