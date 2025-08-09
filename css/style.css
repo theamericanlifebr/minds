@@ -6,6 +6,10 @@ body {
   overflow: hidden;
 }
 
+body.play-page {
+  overflow-y: auto;
+}
+
 body.dark-mode {
   background: #000;
   color: #fff;
@@ -157,9 +161,10 @@ body.dark-mode #clock {
 #menu-modes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 20px;
+  gap: 10px;
   width: 100%;
   max-width: 90vw;
+  margin-top: 50px;
 }
 
 #menu-modes img {
@@ -182,7 +187,7 @@ body.dark-mode #clock {
 }
 
 #pt {
-  font-size: clamp(32px, 6vw, 50px);
+  font-size: clamp(38px, 7.2vw, 60px);
   color: #333;
   background: transparent;
   border: none;
@@ -201,7 +206,7 @@ body.dark-mode #clock {
 
 
 #texto-exibicao {
-  font-size: clamp(32px, 6vw, 50px);
+  font-size: clamp(38px, 7.2vw, 60px);
   color: #333;
   font-family: 'Open Sans', sans-serif;
   font-weight: bold;
@@ -371,7 +376,7 @@ body.dark-mode #clock {
 
 #mode-buttons {
   position: fixed;
-  bottom: 135px;
+  bottom: 85px;
   left: 0;
   width: 100%;
   display: flex;
@@ -877,10 +882,9 @@ body.dark-mode #clock {
 
 @media (max-width: 600px) {
   #texto-exibicao {
-    font-size: clamp(28px, 5.25vw, 43.75px);
+    font-size: clamp(34px, 6.3vw, 52.5px);
     width: calc(100% - 40px);
     height: 180px;
-    border: 1px solid #fff;
     margin: 0 20px;
     background: transparent;
     display: flex;
@@ -891,7 +895,7 @@ body.dark-mode #clock {
     box-sizing: border-box;
   }
   #pt {
-    font-size: clamp(28px, 5.25vw, 43.75px);
+    font-size: clamp(34px, 6.3vw, 52.5px);
   }
   #mode-stats {
     flex-direction: column;
@@ -923,6 +927,14 @@ body.dark-mode #clock {
     transform: translateX(-50%);
     width: 81.6px;
     height: 81.6px;
+  }
+}
+
+@media (max-width: 600px) {
+  #top-nav a[href="explore.html"],
+  #top-nav a[href="custom.html"],
+  #top-nav a[href="fun.html"] {
+    display: none;
   }
 }
 
