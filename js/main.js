@@ -137,7 +137,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
           cb();
         }
       } else if (normCmd.includes('next level') || normCmd.includes('proximo nivel')) {
-        points += 25000;
+        points += 25115;
         saveTotals();
         atualizarBarraProgresso();
         const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
@@ -203,13 +203,29 @@ function handleSilence() {
     texto.style.opacity = '1';
     texto.textContent = 'Toque para ativar';
   }
+  const micBtn = document.getElementById('mic-button');
+  if (micBtn) {
+    micBtn.style.display = 'flex';
+    micBtn.style.opacity = '0.5';
+  }
 }
 
 function handleTapResume(e) {
   if (!isMobile || !awaitingTap) return;
   e.preventDefault();
   awaitingTap = false;
+  const micBtn = document.getElementById('mic-button');
+  if (micBtn) {
+    micBtn.style.display = 'none';
+    micBtn.style.opacity = '1';
+  }
   resumeGame();
+}
+
+const micBtnGlobal = document.getElementById('mic-button');
+if (micBtnGlobal) {
+  micBtnGlobal.addEventListener('touchstart', handleTapResume);
+  micBtnGlobal.addEventListener('click', handleTapResume);
 }
 
 setInterval(() => {
@@ -217,9 +233,6 @@ setInterval(() => {
     try { reconhecimento.start(); } catch (e) {}
   }
 }, 4000);
-
-document.addEventListener('touchstart', handleTapResume);
-document.addEventListener('click', handleTapResume);
 
 let frasesArr = [], fraseIndex = 0;
 let acertosTotais = parseInt(localStorage.getItem('acertosTotais') || '0', 10);
@@ -236,8 +249,8 @@ let lastExpected = '', lastInput = '', lastFolder = 1;
 const TOTAL_FRASES = 25;
 let selectedMode = 1;
 // Removed difficulty selection; game always starts on easy mode
-const INITIAL_POINTS = 3500;
-const COMPLETION_THRESHOLD = 25000;
+const INITIAL_POINTS = 0;
+const COMPLETION_THRESHOLD = 25115;
 const MODE6_THRESHOLD = 25115;
 const timeScoreBases = {
   2: {6: [2.55, 5.78], 33: [4.63, 8.03]},
@@ -273,9 +286,9 @@ let completedModes = JSON.parse(localStorage.getItem('completedModes') || '{}');
 let unlockedModes = JSON.parse(localStorage.getItem('unlockedModes') || '{}');
 let modeIntroShown = JSON.parse(localStorage.getItem('modeIntroShown') || '{}');
 let points = parseInt(localStorage.getItem('points') || INITIAL_POINTS, 10);
-let premioBase = 4000;
-let premioDec = 1;
-let penaltyFactor = 0.5;
+let premioBase = 500;
+let premioDec = 0;
+let penaltyFactor = 0;
 let prizeStart = 0;
 let prizeTimer = null;
 let awaitingNextLevel = false;
@@ -459,7 +472,7 @@ function stopCurrentGame() {
   }
 }
 
-function pauseGame(noPenalty = false) {
+function pauseGame(noPenalty = true) {
   if (pauseInterval) {
     clearInterval(pauseInterval);
     pauseInterval = null;
@@ -475,19 +488,12 @@ function pauseGame(noPenalty = false) {
   }
   const input = document.getElementById('pt');
   if (input) input.disabled = true;
-  if (!noPenalty) {
-    pauseInterval = setInterval(() => {
-      points = Math.max(0, points - 250);
-      saveTotals();
-      atualizarBarraProgresso();
-    }, 1000);
-  }
 }
 
 function resumeGame() {
   if (!paused) return;
   paused = false;
-  consecutiveErrors = 0;
+  reconhecimentoAtivo = true;
   if (pauseInterval) {
     clearInterval(pauseInterval);
     pauseInterval = null;
@@ -728,7 +734,7 @@ const colorStops = [
   [20000, '#00ffff'],
   [22000, '#66ccff'],
   [24000, '#0099ff'],
-  [25000, '#0099ff']
+  [25115, '#0099ff']
 ];
 
 function hexToRgb(hex) {
@@ -882,7 +888,7 @@ function startIntroProgress(duration) {
   const start = Date.now();
   introProgressInterval = setInterval(() => {
     const ratio = Math.min((Date.now() - start) / duration, 1);
-    const limite = selectedMode === 6 ? MODE6_THRESHOLD : 25000;
+    const limite = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
     const pontos = ratio * limite;
     filled.style.width = (ratio * 100) + '%';
     filled.style.backgroundColor = calcularCor(pontos);
@@ -904,7 +910,7 @@ function startTryAgainAnimation() {
   if (!msg) return;
   if (tryAgainColorInterval) clearInterval(tryAgainColorInterval);
   const duration = 30000;
-  const maxPoints = selectedMode === 6 ? MODE6_THRESHOLD : 25000;
+  const maxPoints = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
   const begin = Date.now();
   tryAgainColorInterval = setInterval(() => {
     const elapsed = (Date.now() - begin) % duration;
@@ -924,7 +930,7 @@ function startGame(modo) {
     recordModeTime(prevMode);
   }
   selectedMode = modo;
-  points = modo === 1 ? 0 : INITIAL_POINTS;
+  points = INITIAL_POINTS;
   saveTotals();
   atualizarBarraProgresso();
   updateModeIcons();
@@ -1145,15 +1151,6 @@ function beginGame() {
         reconhecimento.lang = esperadoLang === 'pt' ? 'pt-BR' : 'en-US';
       }
     }
-    if (selectedMode === 1) {
-      premioBase = 1000;
-      premioDec = 0;
-      penaltyFactor = 0;
-    } else {
-      premioBase = 4000;
-      premioDec = 1;
-      penaltyFactor = 0.5;
-    }
     carregarFrases();
   };
 
@@ -1337,7 +1334,7 @@ function verificarResposta() {
   }
   const bonusPhrase = resposta.toLowerCase().replace(/\s+/g, '');
   if (bonusPhrase === 'Justiça de Deus' || bonusPhrase === 'getpointslife') {
-    points += 25000;
+    points += 25115;
     saveTotals();
     input.value = '';
     atualizarBarraProgresso();
@@ -1351,8 +1348,8 @@ function verificarResposta() {
   tentativasTotais++;
   saveTotals();
   const elapsed = Date.now() - prizeStart;
-  const premioAtual = premioBase - elapsed * premioDec;
-  const penalty = elapsed * penaltyFactor;
+  const premioAtual = premioBase;
+  const penalty = 0;
   lastReward = premioAtual;
   lastPenalty = penalty;
   lastWasError = false;
@@ -1365,7 +1362,7 @@ function verificarResposta() {
     saveModeStats();
     document.getElementById("somAcerto").play();
     acertosTotais++;
-    points += 1000;
+    points += 500;
     saveTotals();
     resultado.textContent = '';
     const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
@@ -1412,10 +1409,7 @@ function verificarResposta() {
       saveModeStats();
       document.getElementById("somAcerto").play();
       acertosTotais++;
-      points += premioAtual;
-      if (selectedMode === 5) {
-        points += 1000;
-      }
+      points += 500;
       saveTotals();
       consecutiveErrors = 0;
       resultado.textContent = '';
@@ -1447,13 +1441,27 @@ function verificarResposta() {
       input.disabled = true;
       bloqueado = true;
       falar(esperado, esperadoLang);
+      stopCurrentGame();
       consecutiveErrors++;
       flashError(esperado, () => {
         input.disabled = false;
         bloqueado = false;
-        points = Math.max(0, points - penalty);
-        saveTotals();
-        continuar();
+        const micBtn = document.getElementById('mic-button');
+        if (micBtn) {
+          micBtn.style.display = 'flex';
+          micBtn.style.opacity = '0.5';
+        }
+        const texto = document.getElementById('texto-exibicao');
+        if (texto) {
+          texto.style.opacity = '1';
+          texto.textContent = 'toque para continuar';
+        }
+        awaitingTap = true;
+        pausedBySilence = selectedMode === 1 && consecutiveErrors < 2;
+        if (!(selectedMode === 1 && consecutiveErrors < 2)) {
+          consecutiveErrors = 0;
+        }
+        pauseGame(true);
       });
     }
     atualizarBarraProgresso();
@@ -1469,7 +1477,7 @@ function continuar() {
 }
 
 function atualizarBarraProgresso() {
-  const premioAtual = premioBase - (Date.now() - prizeStart) * premioDec;
+  const premioAtual = premioBase;
   document.getElementById('score').textContent = `PREMIO (${Math.round(premioAtual)}) pontos: (${Math.round(points)})`;
   const filled = document.getElementById('barra-preenchida');
   const limite = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;

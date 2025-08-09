@@ -207,9 +207,10 @@ body.dark-mode #clock {
   font-weight: bold;
   text-align: center;
   max-width: 90vw;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: normal;
 }
 
 #score {
@@ -220,7 +221,7 @@ body.dark-mode #clock {
   width: 100%;
   max-width: 90vw;
   height: 20px;
-  background: #ddd;
+  background: rgba(0, 0, 0, 0.05);
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -843,9 +844,10 @@ body.dark-mode #clock {
 }
 
 #mic-button {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -866,6 +868,7 @@ body.dark-mode #clock {
 
 @media (max-width: 600px) {
   #mic-button {
+    top: calc(50% + 40px);
     width: 50px;
     height: 50px;
     font-size: 20px;
@@ -876,7 +879,7 @@ body.dark-mode #clock {
   #texto-exibicao {
     font-size: clamp(28px, 5.25vw, 43.75px);
     width: calc(100% - 40px);
-    height: 240px;
+    height: 180px;
     border: 1px solid #fff;
     margin: 0 20px;
     background: transparent;
@@ -904,6 +907,22 @@ body.dark-mode #clock {
   }
   #barra-progresso {
     margin-top: 0;
+  }
+  #mode-buttons {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  #mode-buttons img {
+    flex: 0 0 30%;
+  }
+}
+
+@media (max-width: 600px) {
+  #nivel-indicador {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 81.6px;
+    height: 81.6px;
   }
 }
 
