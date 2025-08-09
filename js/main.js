@@ -1733,6 +1733,14 @@ async function initGame() {
         goHome();
       });
     }
+    if (isMobile && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+      } catch (err) {
+        console.error('Erro ao habilitar microfone:', err);
+      }
+    }
     await initGame();
     if (isMobile) {
       const tapLogo = document.getElementById('ilife-logo');
