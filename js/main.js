@@ -83,7 +83,7 @@ function ehQuaseCorretoPalavras(resp, esp) {
 let reconhecimento;
 let reconhecimentoAtivo = false;
 let reconhecimentoRodando = false;
-let listeningForCommand = true;
+let listeningForCommand = false;
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 let allowInput = true;
 let silenceTimer;
@@ -178,24 +178,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
     };
 
     const micBtn = document.getElementById('mic-button');
-    if (micBtn) {
-      if (isMobile) {
-        micBtn.style.display = 'none';
-      } else {
-        micBtn.addEventListener('click', () => {
-          if (reconhecimentoRodando) {
-            reconhecimentoAtivo = false;
-            reconhecimento.stop();
-            micBtn.classList.remove('active');
-          } else {
-            reconhecimentoAtivo = true;
-            try { reconhecimento.start(); } catch (e) {}
-            micBtn.classList.add('active');
-            resetSilenceTimer();
-          }
-        });
-      }
-    }
+    if (micBtn) micBtn.style.display = 'none';
 } else {
   const micBtn = document.getElementById('mic-button');
   if (micBtn) micBtn.style.display = 'none';
@@ -360,7 +343,22 @@ const reportClickHandler = () => {
 const levelStar = document.getElementById('nivel-indicador');
 if (levelStar) levelStar.addEventListener('click', reportClickHandler);
 const modeLogo = document.getElementById('mode-icon');
-if (modeLogo) modeLogo.addEventListener('click', reportClickHandler);
+if (modeLogo) {
+  modeLogo.style.opacity = '0.5';
+  modeLogo.addEventListener('click', () => {
+    if (!reconhecimento) return;
+    if (reconhecimentoRodando) {
+      reconhecimentoAtivo = false;
+      reconhecimento.stop();
+      modeLogo.style.opacity = '0.5';
+    } else {
+      reconhecimentoAtivo = true;
+      try { reconhecimento.start(); } catch (e) {}
+      modeLogo.style.opacity = '1';
+      if (isMobile) resetSilenceTimer();
+    }
+  });
+}
 const phraseDisplay = document.getElementById('texto-exibicao');
 if (phraseDisplay) phraseDisplay.addEventListener('click', reportLastError);
 
@@ -509,11 +507,6 @@ function resumeGame() {
     input.value = '';
   }
   bloqueado = false;
-  if (reconhecimento) {
-    reconhecimentoAtivo = true;
-    try { reconhecimento.start(); } catch (e) {}
-    resetSilenceTimer();
-  }
   if (pausedBySilence) {
     mostrarFrase();
     pausedBySilence = false;
@@ -710,11 +703,6 @@ function menuLevelUpSequence() {
         msg.remove();
         performMenuLevelUp();
       };
-      if (reconhecimento) {
-        reconhecimentoAtivo = true;
-        reconhecimento.lang = 'en-US';
-        reconhecimento.start();
-      }
     }
   }, 500);
 }
@@ -1097,11 +1085,6 @@ function showLevelUp(callback) {
     img.style.height = '250px';
     callback();
   };
-  if (reconhecimento) {
-    reconhecimentoAtivo = true;
-    reconhecimento.lang = 'en-US';
-    reconhecimento.start();
-  }
 }
 
 function beginGame() {
@@ -1114,9 +1097,7 @@ function beginGame() {
     const icon = document.getElementById('mode-icon');
     if (icon) {
       icon.src = modeImages[selectedMode];
-      const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
-      const ratio = Math.max(0, Math.min(points, threshold)) / threshold;
-      icon.style.opacity = ratio;
+      icon.style.opacity = '0.5';
       icon.style.display = 'block';
       icon.onclick = () => { if (paused) resumeGame(); };
     }
@@ -1163,9 +1144,6 @@ function beginGame() {
       } else {
         reconhecimento.lang = esperadoLang === 'pt' ? 'pt-BR' : 'en-US';
       }
-      reconhecimentoAtivo = true;
-      try { reconhecimento.start(); } catch (e) {}
-      if (isMobile) resetSilenceTimer();
     }
     if (selectedMode === 1) {
       premioBase = 1000;
@@ -1475,11 +1453,7 @@ function verificarResposta() {
         bloqueado = false;
         points = Math.max(0, points - penalty);
         saveTotals();
-        if (consecutiveErrors >= 3) {
-          triggerDownPlay();
-        } else {
-          continuar();
-        }
+        continuar();
       });
     }
     atualizarBarraProgresso();
@@ -1506,7 +1480,7 @@ function atualizarBarraProgresso() {
   updateGradientColor(barColor);
   const icon = document.getElementById('mode-icon');
   if (icon) {
-    icon.style.opacity = perc / 100;
+    icon.style.opacity = reconhecimentoAtivo ? '1' : '0.5';
   }
 }
 
@@ -1601,11 +1575,10 @@ function goHome() {
   const icon = document.getElementById('mode-icon');
   if (icon) icon.style.display = 'none';
   if (reconhecimento) {
-    reconhecimentoAtivo = true;
-    reconhecimento.lang = 'en-US';
-    reconhecimento.start();
+    reconhecimentoAtivo = false;
+    try { reconhecimento.stop(); } catch (e) {}
   }
-  listeningForCommand = true;
+  listeningForCommand = false;
   updateModeIcons();
 }
 
@@ -1731,8 +1704,6 @@ async function initGame() {
 
   if (reconhecimento) {
     reconhecimento.lang = 'en-US';
-    reconhecimentoAtivo = true;
-    reconhecimento.start();
   }
 
   document.addEventListener('keydown', e => {
