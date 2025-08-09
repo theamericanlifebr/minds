@@ -86,7 +86,6 @@ let reconhecimentoRodando = false;
 let listeningForCommand = true;
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 let allowInput = true;
-let silenceTimer;
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -173,40 +172,6 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       reconhecimentoRodando = false;
       if (reconhecimentoAtivo) reconhecimento.start();
     };
-  } else {
-    reconhecimento = new SpeechRecognition();
-    reconhecimento.lang = 'en-US';
-    reconhecimento.continuous = true;
-    reconhecimento.interimResults = false;
-
-    const restartSilence = () => {
-      clearTimeout(silenceTimer);
-      silenceTimer = setTimeout(() => { window.location.href = 'index.html'; }, 6000);
-    };
-
-    reconhecimento.onstart = () => {
-      reconhecimentoRodando = true;
-      restartSilence();
-    };
-
-    reconhecimento.onsoundstart = restartSilence;
-
-    reconhecimento.onresult = (event) => {
-      restartSilence();
-      const transcript = event.results[event.results.length - 1][0].transcript.trim();
-      if (!allowInput) return;
-      document.getElementById('pt').value = transcript;
-      verificarResposta();
-    };
-
-    reconhecimento.onerror = (event) => {
-      console.error('Erro no reconhecimento de voz:', event.error);
-    };
-
-    reconhecimento.onend = () => {
-      reconhecimentoRodando = false;
-      if (reconhecimentoAtivo) reconhecimento.start();
-    };
   }
 } else {
   alert('Reconhecimento de voz não é suportado neste navegador. Use o Chrome.');
@@ -214,7 +179,7 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
 
 setInterval(() => {
-  if (reconhecimentoAtivo && !reconhecimentoRodando) {
+  if (reconhecimento && reconhecimentoAtivo && !reconhecimentoRodando) {
     try { reconhecimento.start(); } catch (e) {}
   }
 }, 4000);
@@ -1270,12 +1235,6 @@ function mostrarFrase() {
   prizeStart = Date.now();
   prizeTimer = setInterval(atualizarBarraProgresso, 50);
   atualizarBarraProgresso();
-  if (isMobile && reconhecimento && !reconhecimentoAtivo) {
-    setTimeout(() => {
-      reconhecimentoAtivo = true;
-      reconhecimento.start();
-    }, 500);
-  }
   if (selectedMode >= 2) {
     inputTimeout = setTimeout(handleNoInput, 6000);
   }
