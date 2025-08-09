@@ -12,7 +12,7 @@ const colorStops = [
   [20000, '#00ffff'],
   [22000, '#66ccff'],
   [24000, '#0099ff'],
-  [25000, '#0099ff']
+  [25115, '#0099ff']
 ];
 
 function hexToRgb(hex) {
