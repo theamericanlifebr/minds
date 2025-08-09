@@ -7,58 +7,39 @@ const pastas = {
   
 
 
-Eu te amo#I love you
-Ela saiu#She left
-Está frio#It’s cold
-Me ajuda#Help me
-Vamos lá#Let’s go
-Está bem#It’s fine
-Eu sei#I know
-Ele me viu#He saw me
-Ele viu#He saw
-Ela corre#She runs
-Eu vou#I’ll go
-Me ligue#Call me
-Tudo bem#All good
-Está ok#It’s ok
-Vem cá#Come here
-Saia já#Get out
-Você pode#You can
-Isso dói#It hurts
-Fique aqui#Stay here
-Está aqui#It’s here
-Ele caiu#He fell
-Eu quero#I want
-Me diga#Tell me
-Ele foi#He went
-Vem agora#Come now
-Volte já#Come back
-Bom trabalho#Good job
-Fique calmo#Stay calm
-Pare agora#Stop now
-Vem cá#Come here
-Ajuda aqui#Help here
-Tudo certo#All right
-Sem problemas#No problem
-Me ouça#Hear me
-Você pode#You can
-Vamos juntos#Go together
-Volte já#Come back
-Corra rápido#Run fast
-Durma bem#Sleep well
-Cuidado aí#Watch out
-Olhe isso#Look here
-Pegue isso#Take this
-Espere aí#Wait there
-Escute bem#Listen carefully
-Fique aqui#Stay here
-Fale alto#Speak loud
-Abra isso#Open this
-Feche isso#Close that
-Vire aqui#Turn here
-Entre agora#Enter now
-Sente-se#Sit down
-
+Eu estou pronto#I am ready
+Eu sou forte#I am strong
+Eu estou aprendendo#I am learning
+O dia todo#All day long
+Eu estou pronto?#Am I ready?
+Eu sou forte?#Am I strong?
+Eu estou aprendendo?#Am I learning?
+O dia todo?#All day long?
+Você está aqui#You are here
+Você está aqui?#Are you here?
+Está claro#It is clear
+Está claro?#Is it clear?
+Nós estamos bem#We are fine
+Nós estamos bem?#Are we fine?
+Vamos dizer linha por linha#Let’s just say it line by line
+Você é inteligente#You are smart
+Você é rápido#You are fast
+Você está crescendo#You are growing
+Super rápido#Super fast
+Você é inteligente?#Are you smart?
+Você é rápido?#Are you fast?
+Você está crescendo?#Are you growing?
+Super rápido?#Super fast?
+Ele está pronto#He is ready
+Ele está pronto?#Is he ready?
+Ela está aqui#She is here
+Ela está aqui?#Is she here?
+Eles estão bem#They are good
+Eles estão bem?#Are they good?
+Sim, eles estão#Yes, they are
+Oh, sim, eles estão#Oh yes, they are
+Você está pronto#You are ready
+Você está pronto?#Are you ready?
 
   
   
@@ -6450,6 +6431,7 @@ Quase nenhum deles voltou#Scarcely any of them came back
 
 
 }
+
 
 
 
