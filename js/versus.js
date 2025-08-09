@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentFrase = { pt: '', en: '' };
   let botPlayers = [];
   let userPlayer = null;
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
   const successSound = new Audio('gamesounds/success.mp3');
 
@@ -166,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   applyTheme();
 
-  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+  if (!isMobile && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     reconhecimento = new SpeechRecognition();
     reconhecimento.lang = 'en-US';
@@ -184,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try { reconhecimento.start(); } catch (err) {}
       }
     };
-  } else {
+  } else if (!isMobile) {
     alert('Reconhecimento de voz não suportado.');
   }
 
