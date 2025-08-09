@@ -364,8 +364,8 @@ body.dark-mode #clock {
   width: 250px;
   height: 250px;
   opacity: 0;
-  pointer-events: none;
   transition: opacity 500ms linear;
+  cursor: pointer;
 }
 
 #mode-buttons {
@@ -853,7 +853,7 @@ body.dark-mode #clock {
   background: #00b3b3;
   color: #fff;
   font-size: 24px;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -874,10 +874,21 @@ body.dark-mode #clock {
 
 @media (max-width: 600px) {
   #texto-exibicao {
-    font-size: clamp(56px, 10.5vw, 87.5px);
+    font-size: clamp(28px, 5.25vw, 43.75px);
+    width: calc(100% - 40px);
+    height: 240px;
+    border: 1px solid #fff;
+    margin: 0 20px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: none;
+    white-space: normal;
+    box-sizing: border-box;
   }
   #pt {
-    font-size: clamp(56px, 10.5vw, 87.5px);
+    font-size: clamp(28px, 5.25vw, 43.75px);
   }
   #mode-stats {
     flex-direction: column;
@@ -890,7 +901,6 @@ body.dark-mode #clock {
   #mode-icon {
     width: 150px;
     height: 150px;
-    opacity: 1 !important;
   }
   #barra-progresso {
     margin-top: 0;
