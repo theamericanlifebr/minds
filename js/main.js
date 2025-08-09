@@ -1767,26 +1767,26 @@ async function initGame() {
       }
     }
     await initGame();
-    if (isMobile) {
-      const tapLogo = document.getElementById('ilife-logo');
-      if (tapLogo) {
-        let tapCount = 0;
-        let tapTimer;
-        tapLogo.addEventListener('touchstart', () => {
-          tapCount++;
-          clearTimeout(tapTimer);
-          tapTimer = setTimeout(() => { tapCount = 0; }, 500);
-          if (tapCount === 3) {
-            const screen = document.getElementById('ilife-screen');
-            const menu = document.getElementById('menu');
-            if (screen) screen.style.display = 'none';
-            if (menu) menu.style.display = 'flex';
-            ilifeActive = false;
-            localStorage.setItem('ilifeDone', 'true');
-            startTutorial();
-          }
-        });
-      }
+    const tapArea = document.getElementById('ilife-screen');
+    if (tapArea) {
+      let tapCount = 0;
+      let tapTimer;
+      const handleTap = () => {
+        tapCount++;
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => { tapCount = 0; }, 500);
+        if (tapCount === 3) {
+          const screen = document.getElementById('ilife-screen');
+          const menu = document.getElementById('menu');
+          if (screen) screen.style.display = 'none';
+          if (menu) menu.style.display = 'flex';
+          ilifeActive = false;
+          localStorage.setItem('ilifeDone', 'true');
+          startTutorial();
+        }
+      };
+      tapArea.addEventListener('touchstart', handleTap);
+      tapArea.addEventListener('mousedown', handleTap);
     }
     window.addEventListener('beforeunload', () => {
       recordModeTime(selectedMode);
