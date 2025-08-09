@@ -86,6 +86,9 @@ let reconhecimentoRodando = false;
 let listeningForCommand = true;
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 let allowInput = true;
+let silenceTimer;
+let awaitingTap = false;
+let pausedBySilence = false;
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -96,9 +99,11 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
   reconhecimento.onstart = () => {
     reconhecimentoRodando = true;
+    resetSilenceTimer();
   };
 
   reconhecimento.onresult = (event) => {
+    resetSilenceTimer();
     const transcript = event.results[event.results.length - 1][0].transcript.trim();
     const normCmd = transcript.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     if (ilifeActive) {
@@ -174,17 +179,22 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
 
     const micBtn = document.getElementById('mic-button');
     if (micBtn) {
-      micBtn.addEventListener('click', () => {
-        if (reconhecimentoRodando) {
-          reconhecimentoAtivo = false;
-          reconhecimento.stop();
-          micBtn.classList.remove('active');
-        } else {
-          reconhecimentoAtivo = true;
-          try { reconhecimento.start(); } catch (e) {}
-          micBtn.classList.add('active');
-        }
-      });
+      if (isMobile) {
+        micBtn.style.display = 'none';
+      } else {
+        micBtn.addEventListener('click', () => {
+          if (reconhecimentoRodando) {
+            reconhecimentoAtivo = false;
+            reconhecimento.stop();
+            micBtn.classList.remove('active');
+          } else {
+            reconhecimentoAtivo = true;
+            try { reconhecimento.start(); } catch (e) {}
+            micBtn.classList.add('active');
+            resetSilenceTimer();
+          }
+        });
+      }
     }
 } else {
   const micBtn = document.getElementById('mic-button');
@@ -192,12 +202,41 @@ if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   alert('Reconhecimento de voz não é suportado neste navegador. Use o Chrome.');
 }
 
+function resetSilenceTimer() {
+  if (!isMobile || !reconhecimentoAtivo) return;
+  if (silenceTimer) clearTimeout(silenceTimer);
+  silenceTimer = setTimeout(handleSilence, 5900);
+}
+
+function handleSilence() {
+  if (!isMobile) return;
+  if (silenceTimer) clearTimeout(silenceTimer);
+  awaitingTap = true;
+  pausedBySilence = true;
+  pauseGame(true);
+  const texto = document.getElementById('texto-exibicao');
+  if (texto) {
+    texto.style.transition = 'opacity 500ms linear';
+    texto.style.opacity = '1';
+    texto.textContent = 'Toque para ativar';
+  }
+}
+
+function handleTapResume(e) {
+  if (!isMobile || !awaitingTap) return;
+  e.preventDefault();
+  awaitingTap = false;
+  resumeGame();
+}
 
 setInterval(() => {
   if (reconhecimento && reconhecimentoAtivo && !reconhecimentoRodando) {
     try { reconhecimento.start(); } catch (e) {}
   }
 }, 4000);
+
+document.addEventListener('touchstart', handleTapResume);
+document.addEventListener('click', handleTapResume);
 
 let frasesArr = [], fraseIndex = 0;
 let acertosTotais = parseInt(localStorage.getItem('acertosTotais') || '0', 10);
@@ -412,6 +451,10 @@ function stopCurrentGame() {
     clearInterval(prizeTimer);
     prizeTimer = null;
   }
+  if (silenceTimer) {
+    clearTimeout(silenceTimer);
+    silenceTimer = null;
+  }
   if (reconhecimento) {
     reconhecimentoAtivo = false;
     try { reconhecimento.stop(); } catch {}
@@ -468,9 +511,15 @@ function resumeGame() {
   bloqueado = false;
   if (reconhecimento) {
     reconhecimentoAtivo = true;
-    reconhecimento.start();
+    try { reconhecimento.start(); } catch (e) {}
+    resetSilenceTimer();
   }
-  continuar();
+  if (pausedBySilence) {
+    mostrarFrase();
+    pausedBySilence = false;
+  } else {
+    continuar();
+  }
 }
 
 function triggerDownPlay() {
@@ -1114,12 +1163,9 @@ function beginGame() {
       } else {
         reconhecimento.lang = esperadoLang === 'pt' ? 'pt-BR' : 'en-US';
       }
-      if (isMobile) {
-        reconhecimentoAtivo = false;
-      } else {
-        reconhecimentoAtivo = true;
-        reconhecimento.start();
-      }
+      reconhecimentoAtivo = true;
+      try { reconhecimento.start(); } catch (e) {}
+      if (isMobile) resetSilenceTimer();
     }
     if (selectedMode === 1) {
       premioBase = 1000;
