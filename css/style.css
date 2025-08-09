@@ -284,18 +284,6 @@ body.dark-mode #clock {
   display: none;
 }
 
-#nivel-indicador {
-  position: absolute;
-  top: 70px;
-  left: 70px;
-  width: 68px;
-  height: 68px;
-  object-fit: contain;
-  user-select: none;
-  pointer-events: none;
-}
-
-
 #timer {
   display: none;
   font-size: 18px;
@@ -376,7 +364,7 @@ body.dark-mode #clock {
 
 #mode-buttons {
   position: fixed;
-  bottom: 85px;
+  bottom: 45px;
   left: 0;
   width: 100%;
   display: flex;
@@ -386,8 +374,8 @@ body.dark-mode #clock {
 }
 
 #mode-buttons img {
-  width: 15vw;
-  max-width: 117px;
+  width: 12vw;
+  max-width: 94px;
   height: auto;
   cursor: pointer;
   opacity: 0.35;
@@ -848,37 +836,6 @@ body.dark-mode #clock {
   display: none;
 }
 
-#mic-button {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: none;
-  background: #00b3b3;
-  color: #fff;
-  font-size: 24px;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 1000;
-}
-
-#mic-button.active {
-  background: #ff0000;
-}
-
-@media (max-width: 600px) {
-  #mic-button {
-    top: calc(50% + 40px);
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-  }
-}
 
 @media (max-width: 600px) {
   #texto-exibicao {
@@ -917,18 +874,10 @@ body.dark-mode #clock {
     row-gap: 10px;
   }
   #mode-buttons img {
-    flex: 0 0 30%;
+    flex: 0 0 24%;
   }
 }
 
-@media (max-width: 600px) {
-  #nivel-indicador {
-    left: 50%;
-    transform: translateX(-50%);
-    width: 81.6px;
-    height: 81.6px;
-  }
-}
 
 @media (max-width: 600px) {
   #top-nav a[href="explore.html"],
