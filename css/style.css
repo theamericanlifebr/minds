@@ -54,8 +54,22 @@ body.versus-blue #top-nav a {
   color: #fff;
 }
 
+body.versus-black {
+  background: linear-gradient(to bottom, #555, #000);
+  color: #fff;
+}
+
+body.versus-black #top-nav {
+  background: linear-gradient(90deg, #333, #000);
+}
+
+body.versus-black #top-nav a {
+  color: #fff;
+}
+
 body.versus-blue,
-body.versus-white {
+body.versus-white,
+body.versus-black {
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -89,6 +103,18 @@ body.dark-mode #top-nav {
   background: linear-gradient(90deg, #006666, #008080);
 }
 
+body.dark-mode.versus-blue #top-nav {
+  background: linear-gradient(90deg, #40e0d0, #0066cc);
+}
+
+body.dark-mode.versus-white #top-nav {
+  background: linear-gradient(90deg, #e0e0e0, #f5f5f5);
+}
+
+body.dark-mode.versus-black #top-nav {
+  background: linear-gradient(90deg, #333, #000);
+}
+
 #top-nav a {
   color: #fff;
   text-decoration: none;
@@ -98,6 +124,10 @@ body.dark-mode #top-nav {
 
 body.dark-mode #top-nav a {
   color: #fff;
+}
+
+body.dark-mode.versus-white #top-nav a {
+  color: #555;
 }
 
 body.gradient-mode #top-nav {
@@ -811,6 +841,15 @@ body.dark-mode #clock {
   text-align: center;
   font-size: 35px;
   min-height: 40px;
+}
+
+body.versus-blue #versus-phrase,
+body.versus-black #versus-phrase {
+  color: #fff;
+}
+
+body.versus-white #versus-phrase {
+  color: #555;
 }
 
 .player-name {

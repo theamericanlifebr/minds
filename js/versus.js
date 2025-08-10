@@ -145,13 +145,17 @@ document.addEventListener('DOMContentLoaded', () => {
   let userImg = null;
   let userNameEl = null;
 
+  const themes = ['versus-blue', 'versus-white', 'versus-black'];
+  let themeIndex = themes.findIndex(t => document.body.classList.contains(t));
+
   function applyTheme() {
     fraseEl.style.color = document.body.classList.contains('versus-white') ? '#555' : '#fff';
   }
 
   function toggleTheme() {
-    document.body.classList.toggle('versus-white');
-    document.body.classList.toggle('versus-blue');
+    themeIndex = (themeIndex + 1) % themes.length;
+    document.body.classList.remove(...themes);
+    document.body.classList.add(themes[themeIndex]);
     applyTheme();
   }
 
