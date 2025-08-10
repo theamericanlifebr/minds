@@ -381,15 +381,14 @@ function toggleDarkMode() {
 
 applyColorMode();
 
+const themes = ['versus-blue', 'versus-white', 'versus-black'];
+let themeIndex = themes.findIndex(t => document.body.classList.contains(t));
+
 function toggleTheme() {
   const body = document.body;
-  if (body.classList.contains('versus-blue')) {
-    body.classList.remove('versus-blue');
-    body.classList.add('versus-white');
-  } else {
-    body.classList.remove('versus-white');
-    body.classList.add('versus-blue');
-  }
+  body.classList.remove(...themes);
+  themeIndex = (themeIndex + 1) % themes.length;
+  body.classList.add(themes[themeIndex]);
 }
 
 const reportClickHandler = () => {
