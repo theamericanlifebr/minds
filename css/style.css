@@ -622,9 +622,13 @@ body.dark-mode #clock {
 
 .play-stat-bar {
   width: 270px;
-  margin: 20px auto;
+  margin: 10px auto;
   text-align: center;
   font-family: 'Open Sans', sans-serif;
+}
+
+#play-content .play-stat-bar:first-child {
+  margin-top: 30px;
 }
 
 .play-bar-title {
@@ -645,11 +649,6 @@ body.dark-mode #clock {
   width: 0;
   background: #00cc66;
   transition: width 1s;
-}
-
-.play-bar-value {
-  margin-top: 5px;
-  font-weight: 700;
 }
 
 #fun-content {
