@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Options</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dark-mode options-page">
+  <nav id="top-nav">
+    <a href="index.html">fluency</a>
+    <a href="fun.html">fun</a>
+    <a href="stats.html">stats</a>
+    <a href="custom.html">custom</a>
+    <a href="options.html">options</a>
+    <a href="explore.html">explore</a>
+  </nav>
+  <div id="options-content" style="text-align:center;margin-top:50px;">
+    <div>
+      <label for="level-select">Escolher nível</label>
+      <select id="level-select"></select>
+    </div>
+    <div>
+      <label for="theme-select">Tema</label>
+      <select id="theme-select">
+        <option value="0">Blue</option>
+        <option value="1">White</option>
+        <option value="2">Black</option>
+      </select>
+    </div>
+    <div>
+      <label for="points-input">Pontos por acerto</label>
+      <input type="number" id="points-input" min="1" />
+    </div>
+  </div>
+  <script src="js/options.js"></script>
+</body>
+</html>

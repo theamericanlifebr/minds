@@ -6,7 +6,11 @@ body {
   overflow: hidden;
 }
 
-body.play-page {
+body.stats-page {
+  overflow-y: auto;
+}
+
+body.options-page {
   overflow-y: auto;
 }
 
@@ -432,7 +436,7 @@ body.dark-mode #clock {
   transition: opacity 0.2s linear;
 }
 
-.play-page #mode-buttons {
+.stats-page #mode-buttons {
   left: 50%;
   bottom: 100px;
   width: auto;
@@ -443,12 +447,12 @@ body.dark-mode #clock {
   gap: 20px;
 }
 
-.play-page #mode-buttons img {
+.stats-page #mode-buttons img {
   width: 75px;
   height: 75px;
 }
 
-#play-content {
+#stats-content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -545,7 +549,7 @@ body.dark-mode #clock {
   to { opacity: 1; }
 }
 
-/* Play stats page */
+/* Stats page */
 .mode-section {
   display: flex;
   flex-direction: column;
@@ -664,7 +668,7 @@ body.dark-mode #clock {
   font-family: 'Open Sans', sans-serif;
 }
 
-#play-content .play-stat-bar:first-child {
+#stats-content .play-stat-bar:first-child {
   margin-top: 30px;
 }
 
