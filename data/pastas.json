@@ -15,7 +15,6 @@ Você pensa#You think
 Eu danço#I dance
 Ele dança#He dances
 Nós somos#We are
-Eles gostam#They like
 Ele é#He is
 Ela é#She is
 Nós gostamos#We like
@@ -44,16 +43,6 @@ Você lê#You read
 Ele lê#He reads
 Nós lemos#We read
 Eles leem#They read
-Eu escrevo#I write
-Você escreve#You write
-Ele escreve#He writes
-Nós escrevemos#We write
-Eles escrevem#They write
-Eu canto#I sing
-Você canta#You sing
-Ele canta#He sings
-Nós cantamos#We sing
-Eles cantam#They sing
 Eu pulo#I jump
 Você pula#You jump
 Ele pula#He jumps
@@ -69,11 +58,6 @@ Você ama#You love
 Ele ama#He loves
 Nós amamos#We love
 Eles amam#They love
-Eu ouço#I hear
-Você ouve#You hear
-Ele ouve#He hears
-Nós ouvimos#We hear
-Eles ouvem#They hear
 Eu vejo#I see
 Você vê#You see
 Ele vê#He sees
@@ -6492,6 +6476,7 @@ Quase nenhum deles voltou#Scarcely any of them came back
 
 
 }
+
 
 
 
