@@ -10,6 +10,10 @@ body.play-page {
   overflow-y: auto;
 }
 
+body.custom-page {
+  overflow-y: auto;
+}
+
 body.dark-mode {
   background: #000;
   color: #fff;
@@ -69,7 +73,7 @@ body.dark-mode #timer {
 }
 
 body.dark-mode #texto-exibicao {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0);
 }
 
 #top-nav {
@@ -163,7 +167,10 @@ body.dark-mode #intro-overlay {
 }
 
 body.dark-mode #menu-logo {
-  filter: invert(1);
+  filter: none;
+}
+body.gradient-mode #menu-logo {
+  filter: none;
 }
 
 body.dark-mode #clock {
@@ -172,7 +179,7 @@ body.dark-mode #clock {
 
 #menu-modes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   width: 100%;
   max-width: 90vw;
@@ -228,7 +235,7 @@ body.dark-mode #clock {
   align-items: center;
   justify-content: center;
   white-space: normal;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0);
 }
 
 #score {
