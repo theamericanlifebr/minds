@@ -230,15 +230,22 @@ body.dark-mode #clock {
   width: 100%;
   max-width: 90vw;
   margin-top: 50px;
+  justify-items: center;
 }
 
 #menu-modes img {
-  width: 100%;
+  width: 50%;
   height: auto;
   object-fit: contain;
   cursor: pointer;
   opacity: 0.3;
   transition: opacity 0.2s linear;
+}
+
+@media (max-width: 600px) {
+  #menu-modes img {
+    width: 100%;
+  }
 }
 
 
