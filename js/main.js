@@ -1243,7 +1243,7 @@ function flashSuccess(callback) {
   texto.style.color = color;
   setTimeout(() => {
     texto.style.transition = 'color 500ms linear';
-    texto.style.color = '#333';
+    texto.style.color = '';
     setTimeout(() => {
       document.getElementById('resultado').textContent = '';
       callback();
@@ -1259,7 +1259,7 @@ function flashError(expected, callback) {
   texto.style.color = 'red';
   setTimeout(() => {
     texto.style.transition = 'color 500ms linear';
-    texto.style.color = '#333';
+    texto.style.color = '';
     setTimeout(() => {
       texto.textContent = previous;
       document.getElementById('resultado').textContent = '';
