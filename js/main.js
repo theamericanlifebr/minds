@@ -317,7 +317,7 @@ let completedModes = JSON.parse(localStorage.getItem('completedModes') || '{}');
 let unlockedModes = JSON.parse(localStorage.getItem('unlockedModes') || '{}');
 let modeIntroShown = JSON.parse(localStorage.getItem('modeIntroShown') || '{}');
 let points = parseInt(localStorage.getItem('points') || INITIAL_POINTS, 10);
-let premioBase = 1000;
+let premioBase = parseInt(localStorage.getItem("premioBase"), 10) || 1000;
 let premioDec = 0;
 let penaltyFactor = 0;
 let prizeStart = 0;
@@ -382,13 +382,20 @@ function toggleDarkMode() {
 applyColorMode();
 
 const themes = ['versus-blue', 'versus-white', 'versus-black'];
-let themeIndex = themes.findIndex(t => document.body.classList.contains(t));
+let themeIndex = parseInt(localStorage.getItem('themeIndex'), 10);
+if (isNaN(themeIndex) || themeIndex < 0 || themeIndex >= themes.length) {
+  themeIndex = themes.findIndex(t => document.body.classList.contains(t));
+  if (themeIndex < 0) themeIndex = 0;
+}
+document.body.classList.remove(...themes);
+document.body.classList.add(themes[themeIndex]);
 
 function toggleTheme() {
   const body = document.body;
   body.classList.remove(...themes);
   themeIndex = (themeIndex + 1) % themes.length;
   body.classList.add(themes[themeIndex]);
+  localStorage.setItem('themeIndex', themeIndex);
 }
 
 const reportClickHandler = () => {
@@ -715,7 +722,7 @@ function startStatsSequence() {
   const audio = new Audio('gamesounds/nivel2.mp3');
   audio.addEventListener('ended', () => {
     localStorage.setItem('statsSequence', 'true');
-    window.location.href = 'play.html';
+    window.location.href = 'stats.html';
   });
   audio.play();
 }

@@ -78,7 +78,7 @@ const TIME_POINT_REFS = {
 const SPEED_SCALE = 70 / 81.72;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('play-content');
+  const container = document.getElementById('stats-content');
   container.style.transition = 'opacity 0.2s';
   const buttons = document.querySelectorAll('#mode-buttons img');
   const clickSound = new Audio('gamesounds/mododesbloqueado.mp3');
