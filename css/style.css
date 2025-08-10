@@ -395,11 +395,27 @@ body.dark-mode #clock {
   transition: opacity 0.2s linear;
 }
 
+.play-page #mode-buttons {
+  left: 50%;
+  bottom: 100px;
+  width: auto;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(3, 75px);
+  grid-template-rows: repeat(2, 75px);
+  gap: 20px;
+}
+
+.play-page #mode-buttons img {
+  width: 75px;
+  height: 75px;
+}
+
 #play-content {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: 40px;
+  gap: 20px;
 }
 
 @media (max-width: 600px) {
