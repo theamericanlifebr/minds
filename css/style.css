@@ -172,16 +172,17 @@ body.dark-mode #clock {
 
 #menu-modes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  grid-template-columns: repeat(2, 125px);
+  grid-auto-rows: 125px;
   gap: 10px;
   width: 100%;
-  max-width: 90vw;
-  margin-top: 50px;
+  justify-content: center;
+  margin-top: 150px;
 }
 
 #menu-modes img {
-  width: 100%;
-  height: auto;
+  width: 125px;
+  height: 125px;
   object-fit: contain;
   cursor: pointer;
   opacity: 0.3;
@@ -397,6 +398,7 @@ body.dark-mode #clock {
 
 #play-content {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 40px;
@@ -433,7 +435,6 @@ body.dark-mode #clock {
   width: 100px;
   height: auto;
   z-index: 1000;
-  display: none;
 }
 
 #tutorial-logo {
@@ -929,7 +930,8 @@ body.dark-mode #clock {
 @media (max-width: 600px) {
   #top-nav a[href="explore.html"],
   #top-nav a[href="custom.html"],
-  #top-nav a[href="fun.html"] {
+  #top-nav a[href="fun.html"],
+  #top-nav a[href="versus.html"] {
     display: none;
   }
 }

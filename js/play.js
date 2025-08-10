@@ -108,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const ref = TIME_POINT_REFS[mode] || 100;
     let timePerc = total ? ((timePts / total) / ref) * 100 : 0;
     timePerc *= SPEED_SCALE;
-    const speedPerc = total ? (100 - (report / total * 100)) : 100;
-    return { accPerc, timePerc, speedPerc };
+    const reportPerc = total ? (report / total * 100) : 0;
+    return { accPerc, timePerc, reportPerc };
   }
 
   function calcGeneralStats() {
@@ -128,8 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const accPerc = totalPhrases ? (totalCorrect / totalPhrases * 100) : 0;
     let timePerc = totalRef ? (totalTimePts / totalRef) * 100 : 0;
     timePerc *= SPEED_SCALE;
-    const speedPerc = totalPhrases ? (100 - (totalReport / totalPhrases * 100)) : 100;
-    return { accPerc, timePerc, speedPerc };
+    const reportPerc = totalPhrases ? (totalReport / totalPhrases * 100) : 0;
+    return { accPerc, timePerc, reportPerc };
   }
 
   function startVersus(name, mode) {
@@ -181,15 +181,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       container.innerHTML = '';
       if (mode === 1) {
-        const { accPerc, timePerc, speedPerc } = calcGeneralStats();
+        const { accPerc, timePerc, reportPerc } = calcGeneralStats();
         container.appendChild(createStatBar(accPerc, 'Precisão'));
         container.appendChild(createStatBar(timePerc, 'Tempo'));
-        container.appendChild(createStatBar(speedPerc, 'Velocidade'));
+        container.appendChild(createStatBar(reportPerc, 'Report'));
       } else {
-        const { accPerc, timePerc, speedPerc } = calcModeStats(mode);
+        const { accPerc, timePerc, reportPerc } = calcModeStats(mode);
         container.appendChild(createStatBar(accPerc, 'Precisão'));
         container.appendChild(createStatBar(timePerc, 'Tempo'));
-        container.appendChild(createStatBar(speedPerc, 'Velocidade'));
+        container.appendChild(createStatBar(reportPerc, 'Report'));
       }
       container.style.opacity = 1;
     }, 150);
