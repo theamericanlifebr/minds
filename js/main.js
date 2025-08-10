@@ -1770,13 +1770,13 @@ async function initGame() {
       for (let i = 1; i <= 128; i++) {
         const opt = document.createElement('option');
         opt.value = i;
-        opt.textContent = `Nível ${i}`;
+        opt.textContent = `Modo ${i}`;
         dropdown.appendChild(opt);
       }
       dropdown.addEventListener('change', () => {
-        const nivel = parseInt(dropdown.value, 10);
-        pastaAtual = nivel;
-        updateLevelIcon();
+        const modo = parseInt(dropdown.value, 10);
+        stopCurrentGame();
+        startGame(modo);
       });
       levelText.parentNode.insertBefore(dropdown, levelText.nextSibling);
     });
