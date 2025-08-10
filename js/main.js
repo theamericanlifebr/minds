@@ -79,6 +79,34 @@ function ehQuaseCorretoPalavras(resp, esp) {
   return true;
 }
 
+function modo1Correto(resp, esp) {
+  const norm = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/gi, '').toLowerCase();
+  const r = norm(resp);
+  const e = norm(esp);
+  if (r === e) return true;
+  if (r.length === e.length) {
+    let diff = 0;
+    for (let i = 0; i < e.length; i++) {
+      if (r[i] !== e[i]) {
+        if (r[i] === 's' || r[i] === 'd' || e[i] === 's' || e[i] === 'd') return false;
+        if (++diff > 1) return false;
+      }
+    }
+    return diff === 1;
+  }
+  if (r.length === e.length + 1) {
+    let i = 0, j = 0;
+    while (i < r.length && j < e.length && r[i] === e[j]) { i++; j++; }
+    if (r[i] === 's' || r[i] === 'd') return false;
+    i++;
+    while (i < r.length && j < e.length) {
+      if (r[i++] !== e[j++]) return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 
 let reconhecimento;
 let reconhecimentoAtivo = false;
@@ -89,8 +117,9 @@ let allowInput = true;
 let silenceTimer;
 let awaitingTap = false;
 let pausedBySilence = false;
-const secretSequence = [4, 5, 4, 5, 6];
+const secretSequence = [4, 5, 4, 4, 4];
 let inputSequence = [];
+let dropdownUnlocked = false;
 
 if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -288,7 +317,7 @@ let completedModes = JSON.parse(localStorage.getItem('completedModes') || '{}');
 let unlockedModes = JSON.parse(localStorage.getItem('unlockedModes') || '{}');
 let modeIntroShown = JSON.parse(localStorage.getItem('modeIntroShown') || '{}');
 let points = parseInt(localStorage.getItem('points') || INITIAL_POINTS, 10);
-let premioBase = 500;
+let premioBase = 1000;
 let premioDec = 0;
 let penaltyFactor = 0;
 let prizeStart = 0;
@@ -1376,41 +1405,27 @@ function verificarResposta() {
 
   const stats = ensureModeStats(selectedMode);
 
-  if (selectedMode === 1) {
-    stats.totalPhrases++;
-    stats.correct++;
-    saveModeStats();
-    document.getElementById("somAcerto").play();
-    acertosTotais++;
-    points += 500;
-    saveTotals();
-    resultado.textContent = '';
-    const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
-    const reached = points >= threshold && !completedModes[selectedMode];
-    flashSuccess(() => {
-      if (reached) finishMode();
-      else continuar();
-    });
-    atualizarBarraProgresso();
-    return;
-  }
+  const [pt, en] = frasesArr[fraseIndex];
 
-    const [pt, en] = frasesArr[fraseIndex];
-
-    const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
-    const esperado = esperadoLang === 'pt' ? pt : en;
-    const expectedPhrase = esperado;
-    const respostaCorrigida = aplicarFrasesCorretas(resposta);
-    const esperadoCorrigido = aplicarFrasesCorretas(esperado);
-    let normalizadoResp = norm(respostaCorrigida);
-    const normalizadoEsp = norm(esperadoCorrigido);
+  const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+  const esperado = esperadoLang === 'pt' ? pt : en;
+  const expectedPhrase = esperado;
+  const respostaCorrigida = aplicarFrasesCorretas(resposta);
+  const esperadoCorrigido = aplicarFrasesCorretas(esperado);
+  let normalizadoResp = norm(respostaCorrigida);
+  const normalizadoEsp = norm(esperadoCorrigido);
   if (normalizadoResp === 'justicanaterra') {
     normalizadoResp = normalizadoEsp;
   }
-  const correto =
-    normalizadoResp === normalizadoEsp ||
-    ehQuaseCorreto(normalizadoResp, normalizadoEsp) ||
-    ehQuaseCorretoPalavras(respostaCorrigida, esperadoCorrigido);
+  let correto;
+  if (selectedMode === 1) {
+    correto = modo1Correto(respostaCorrigida, esperadoCorrigido);
+  } else {
+    correto =
+      normalizadoResp === normalizadoEsp ||
+      ehQuaseCorreto(normalizadoResp, normalizadoEsp) ||
+      ehQuaseCorretoPalavras(respostaCorrigida, esperadoCorrigido);
+  }
 
   const phraseLen = expectedPhrase.replace(/\s+/g, '').length;
   let timePoints = 0;
@@ -1422,68 +1437,68 @@ function verificarResposta() {
     if (timePoints < 0) timePoints = 0;
   }
 
-    if (correto) {
-      stats.totalPhrases++;
-      stats.correct++;
-      stats.timePoints += timePoints;
-      saveModeStats();
-      document.getElementById("somAcerto").play();
-      acertosTotais++;
-      points += 500;
-      saveTotals();
-      consecutiveErrors = 0;
-      resultado.textContent = '';
-      const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
-      const reached = points >= threshold && !completedModes[selectedMode];
-      flashSuccess(() => {
-        if (reached) finishMode();
-        else continuar();
-      });
-    } else {
-      stats.totalPhrases++;
-      stats.wrong++;
-      stats.timePoints += timePoints;
-      const wr = stats.wrongRanking;
-      const existing = wr.find(e => e.expected === expectedPhrase && e.input === resposta && e.folder === pastaAtual);
-      if (existing) existing.count++;
-      else wr.push({ expected: expectedPhrase, input: resposta, folder: pastaAtual, count: 1 });
-      saveModeStats();
-      document.getElementById("somErro").play();
-      errosTotais++;
-      lastExpected = expectedPhrase;
-      lastInput = resposta;
-      lastFolder = pastaAtual;
-      saveTotals();
-      lastWasError = true;
-      resultado.textContent = "";
-      resultado.style.color = "red";
-      input.value = '';
-      input.disabled = true;
-      bloqueado = true;
-      falar(esperado, esperadoLang);
-      stopCurrentGame();
-      consecutiveErrors++;
-      flashError(esperado, () => {
-        input.disabled = false;
-        bloqueado = false;
-        const micBtn = document.getElementById('mic-button');
-        if (micBtn) {
-          micBtn.style.display = 'flex';
-          micBtn.style.opacity = '0.5';
-        }
-        const texto = document.getElementById('texto-exibicao');
-        if (texto) {
-          texto.style.opacity = '1';
-          texto.textContent = 'toque para continuar';
-        }
-        awaitingTap = true;
-        pausedBySilence = selectedMode === 1 && consecutiveErrors < 2;
-        if (!(selectedMode === 1 && consecutiveErrors < 2)) {
-          consecutiveErrors = 0;
-        }
-        pauseGame(true);
-      });
-    }
+  if (correto) {
+    stats.totalPhrases++;
+    stats.correct++;
+    stats.timePoints += timePoints;
+    saveModeStats();
+    document.getElementById("somAcerto").play();
+    acertosTotais++;
+    points += 1000;
+    saveTotals();
+    consecutiveErrors = 0;
+    resultado.textContent = '';
+    const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
+    const reached = points >= threshold && !completedModes[selectedMode];
+    flashSuccess(() => {
+      if (reached) finishMode();
+      else continuar();
+    });
+  } else {
+    stats.totalPhrases++;
+    stats.wrong++;
+    stats.timePoints += timePoints;
+    const wr = stats.wrongRanking;
+    const existing = wr.find(e => e.expected === expectedPhrase && e.input === resposta && e.folder === pastaAtual);
+    if (existing) existing.count++;
+    else wr.push({ expected: expectedPhrase, input: resposta, folder: pastaAtual, count: 1 });
+    saveModeStats();
+    document.getElementById("somErro").play();
+    errosTotais++;
+    lastExpected = expectedPhrase;
+    lastInput = resposta;
+    lastFolder = pastaAtual;
+    saveTotals();
+    lastWasError = true;
+    resultado.textContent = "";
+    resultado.style.color = "red";
+    input.value = '';
+    input.disabled = true;
+    bloqueado = true;
+    falar(esperado, esperadoLang);
+    stopCurrentGame();
+    consecutiveErrors++;
+    flashError(esperado, () => {
+      input.disabled = false;
+      bloqueado = false;
+      const micBtn = document.getElementById('mic-button');
+      if (micBtn) {
+        micBtn.style.display = 'flex';
+        micBtn.style.opacity = '0.5';
+      }
+      const texto = document.getElementById('texto-exibicao');
+      if (texto) {
+        texto.style.opacity = '1';
+        texto.textContent = 'toque para continuar';
+      }
+      awaitingTap = true;
+      pausedBySilence = selectedMode === 1 && consecutiveErrors < 2;
+      if (!(selectedMode === 1 && consecutiveErrors < 2)) {
+        consecutiveErrors = 0;
+      }
+      pauseGame(true);
+    });
+  }
     atualizarBarraProgresso();
     // Pontuação de acertos ocultada
   }
@@ -1724,7 +1739,7 @@ async function initGame() {
         inputSequence.push(modo);
         if (inputSequence.length > secretSequence.length) inputSequence.shift();
         if (secretSequence.every((v, i) => inputSequence[i] === v)) {
-          for (let m = 1; m <= 6; m++) unlockMode(m, 500);
+          dropdownUnlocked = true;
         }
       }
       stopCurrentGame();
@@ -1740,6 +1755,32 @@ async function initGame() {
       startGame(modo);
     });
   });
+
+  const levelText = document.getElementById('menu-level');
+  if (levelText) {
+    levelText.addEventListener('click', () => {
+      if (!dropdownUnlocked) return;
+      let dropdown = document.getElementById('mode-dropdown');
+      if (dropdown) {
+        dropdown.remove();
+        return;
+      }
+      dropdown = document.createElement('select');
+      dropdown.id = 'mode-dropdown';
+      for (let i = 1; i <= 128; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `Modo ${i}`;
+        dropdown.appendChild(opt);
+      }
+      dropdown.addEventListener('change', () => {
+        const modo = parseInt(dropdown.value, 10);
+        stopCurrentGame();
+        startGame(modo);
+      });
+      levelText.parentNode.insertBefore(dropdown, levelText.nextSibling);
+    });
+  }
 
   if (reconhecimento) {
     reconhecimento.lang = 'en-US';
