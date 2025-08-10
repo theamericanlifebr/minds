@@ -94,6 +94,18 @@ body.dark-mode #texto-exibicao {
   border: 1px solid rgba(255, 255, 255, 0);
 }
 
+body.versus-blue #pt,
+body.versus-blue #texto-exibicao {
+  color: #fff;
+  caret-color: #fff;
+}
+
+body.versus-black #pt,
+body.versus-black #texto-exibicao {
+  color: #ccc;
+  caret-color: #ccc;
+}
+
 #top-nav {
   display: flex;
   justify-content: center;
