@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ref = TIME_POINT_REFS[mode] || 100;
     let timePerc = total ? ((timePts / total) / ref) * 100 : 0;
     timePerc *= SPEED_SCALE;
-    const reportPerc = total ? (report / total * 100) : 0;
+    const reportPerc = total ? 100 - (report / total * 100) : 100;
     return { accPerc, timePerc, reportPerc };
   }
 
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const accPerc = totalPhrases ? (totalCorrect / totalPhrases * 100) : 0;
     let timePerc = totalRef ? (totalTimePts / totalRef) * 100 : 0;
     timePerc *= SPEED_SCALE;
-    const reportPerc = totalPhrases ? (totalReport / totalPhrases * 100) : 0;
+    const reportPerc = totalPhrases ? 100 - (totalReport / totalPhrases * 100) : 100;
     return { accPerc, timePerc, reportPerc };
   }
 
