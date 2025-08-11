@@ -24,7 +24,14 @@ function aplicarFrasesCorretas(texto) {
 function parsePastas(raw) {
   const result = {};
   for (const [key, texto] of Object.entries(raw)) {
-    result[key] = texto.trim().split(/\n+/).filter(Boolean).map(l => l.split('#').map(s => s.trim()));
+    result[key] = texto
+      .trim()
+      .split(/\n+/)
+      .filter(Boolean)
+      .map(l => {
+        const parts = l.split('#').map(s => s.trim());
+        return [parts[0], parts.slice(1)];
+      });
   }
   return result;
 }
@@ -1158,7 +1165,8 @@ function showShortModeIntro(modo, callback) {
 
 function falarFrase() {
   if (frasesArr[fraseIndex]) {
-    const [, en] = frasesArr[fraseIndex];
+    const [, ens] = frasesArr[fraseIndex];
+    const en = ens[Math.floor(Math.random() * ens.length)];
     falar(en, 'en');
   }
 }
@@ -1204,7 +1212,8 @@ function carregarFrases() {
 function mostrarFrase() {
   if (inputTimeout) clearTimeout(inputTimeout);
   if (fraseIndex >= frasesArr.length) fraseIndex = 0;
-  const [pt, en] = frasesArr[fraseIndex];
+  const [pt, ens] = frasesArr[fraseIndex];
+  const en = ens[Math.floor(Math.random() * ens.length)];
   const texto = document.getElementById("texto-exibicao");
   if (mostrarTexto === 'pt') texto.textContent = pt;
   else if (mostrarTexto === 'en') texto.textContent = en;
@@ -1316,27 +1325,40 @@ function verificarResposta() {
 
   const stats = ensureModeStats(selectedMode);
 
-  const [pt, en] = frasesArr[fraseIndex];
+  const [pt, ens] = frasesArr[fraseIndex];
 
   const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
-  const esperado = esperadoLang === 'pt' ? pt : en;
-  const expectedPhrase = esperado;
+  const esperados = esperadoLang === 'pt' ? [pt] : ens;
+  let esperado = esperados[0];
+  let esperadoCorrigido = aplicarFrasesCorretas(esperado);
+  let normalizadoEsp = norm(esperadoCorrigido);
   const respostaCorrigida = aplicarFrasesCorretas(resposta);
-  const esperadoCorrigido = aplicarFrasesCorretas(esperado);
   let normalizadoResp = norm(respostaCorrigida);
-  const normalizadoEsp = norm(esperadoCorrigido);
   if (normalizadoResp === 'justicanaterra') {
     normalizadoResp = normalizadoEsp;
   }
-  let correto;
-  if (selectedMode === 1) {
-    correto = modo1Correto(respostaCorrigida, esperadoCorrigido);
-  } else {
-    correto =
-      normalizadoResp === normalizadoEsp ||
-      ehQuaseCorreto(normalizadoResp, normalizadoEsp) ||
-      ehQuaseCorretoPalavras(respostaCorrigida, esperadoCorrigido);
+  let correto = false;
+  for (const esp of esperados) {
+    const espCorr = aplicarFrasesCorretas(esp);
+    const normEsp = norm(espCorr);
+    let match;
+    if (selectedMode === 1) {
+      match = modo1Correto(respostaCorrigida, espCorr);
+    } else {
+      match =
+        normalizadoResp === normEsp ||
+        ehQuaseCorreto(normalizadoResp, normEsp) ||
+        ehQuaseCorretoPalavras(respostaCorrigida, espCorr);
+    }
+    if (match) {
+      correto = true;
+      esperado = esp;
+      esperadoCorrigido = espCorr;
+      normalizadoEsp = normEsp;
+      break;
+    }
   }
+  const expectedPhrase = esperado;
 
   const phraseLen = expectedPhrase.replace(/\s+/g, '').length;
   let timePoints = 0;
@@ -1710,8 +1732,8 @@ async function initGame() {
     if (e.key === 'r') falarFrase();
     if (e.key.toLowerCase() === 'h') toggleDarkMode();
     if (e.key.toLowerCase() === 'i') {
-      const [pt, en] = frasesArr[fraseIndex] || ['',''];
-      const esperado = esperadoLang === 'pt' ? pt : en;
+      const [pt, ens] = frasesArr[fraseIndex] || ['', []];
+      const esperado = esperadoLang === 'pt' ? pt : ens[0];
       document.getElementById('pt').value = esperado;
       verificarResposta();
       return;
