@@ -1166,8 +1166,8 @@ function showShortModeIntro(modo, callback) {
 function falarFrase() {
   if (frasesArr[fraseIndex]) {
     const [, ens] = frasesArr[fraseIndex];
-    const en = ens[Math.floor(Math.random() * ens.length)];
-    falar(en, 'en');
+    const en = ens[0];
+    if (en) falar(en, 'en');
   }
 }
 
@@ -1213,14 +1213,14 @@ function mostrarFrase() {
   if (inputTimeout) clearTimeout(inputTimeout);
   if (fraseIndex >= frasesArr.length) fraseIndex = 0;
   const [pt, ens] = frasesArr[fraseIndex];
-  const en = ens[Math.floor(Math.random() * ens.length)];
+  const en = ens[0] || '';
   const texto = document.getElementById("texto-exibicao");
   if (mostrarTexto === 'pt') texto.textContent = pt;
   else if (mostrarTexto === 'en') texto.textContent = en;
   else texto.textContent = '';
   document.getElementById("pt").value = '';
   document.getElementById("pt").disabled = false;
-  if (voz === 'en') falar(en, 'en');
+  if (voz === 'en' && en) falar(en, 'en');
   else if (voz === 'pt') falar(pt, 'pt');
   bloqueado = false;
   if (timerInterval) clearInterval(timerInterval);
