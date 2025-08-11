@@ -7,82 +7,82 @@ const pastas = {
   
 
 
-Eu gosto#I like
-Você é#You are
-Eu sou#I am
-Eu penso#I think
-Você pensa#You think
-Eu danço#I dance
-Ele dança#He dances
-Nós somos#We are
-Ele é#He is
-Ela é#She is
-Nós gostamos#We like
-Eu como#I eat
-Você come#You eat
-Ele come#He eats
-Nós comemos#We eat
-Eles comem#They eat
-Eu corro#I run
-Você corre#You run
-Ele corre#He runs
-Nós corremos#We run
-Eles correm#They run
-Eu jogo#I play
-Você joga#You play
-Ele joga#He plays
-Nós jogamos#We play
-Eles jogam#They play
-Eu durmo#I sleep
-Você dorme#You sleep
-Ele dorme#He sleeps
-Nós dormimos#We sleep
-Eles dormem#They sleep
-Eu leio#I read
-Você lê#You read
-Ele lê#He reads
-Nós lemos#We read
-Eles leem#They read
-Eu pulo#I jump
-Você pula#You jump
-Ele pula#He jumps
-Nós pulamos#We jump
-Eles pulam#They jump
-Eu ajudo#I help
-Você ajuda#You help
-Ele ajuda#He helps
-Nós ajudamos#We help
-Eles ajudam#They help
-Eu amo#I love#I adore
-Você ama#You love
-Ele ama#He loves
-Nós amamos#We love
-Eles amam#They love
-Eu vejo#I see
-Você vê#You see
-Ele vê#He sees
-Nós vemos#We see
-Eles veem#They see
-Eu digo#I say#I tell
-Você diz#You say
-Ele diz#He says
-Nós dizemos#We say
-Eles dizem#They say
-Eu bebo#I drink
-Você bebe#You drink
-Ele bebe#He drinks
-Nós bebemos#We drink
-Eles bebem#They drink
-Eu faço#I make
-Você faz#You make
-Ele faz#He makes
-Nós fazemos#We make
-Eles fazem#They make
-Eu fico#I stay
-Você fica#You stay
-Ele fica#He stays
-Nós ficamos#We stay
-Eles ficam#They stay
+Eu gosto#I like#Pizza
+Você é#You are#Pizza
+Eu sou#I am#Pizza
+Eu penso#I think#Pizza
+Você pensa#You think#Pizza
+Eu danço#I dance#Pizza
+Ele dança#He dances#Pizza
+Nós somos#We are#Pizza
+Ele é#He is#Pizza
+Ela é#She is#Pizza
+Nós gostamos#We like#Pizza
+Eu como#I eat#Pizza
+Você come#You eat#Pizza
+Ele come#He eats#Pizza
+Nós comemos#We eat#Pizza
+Eles comem#They eat#Pizza
+Eu corro#I run#Pizza
+Você corre#You run#Pizza
+Ele corre#He runs#Pizza
+Nós corremos#We run#Pizza
+Eles correm#They run#Pizza
+Eu jogo#I play#Pizza
+Você joga#You play#Pizza
+Ele joga#He plays#Pizza
+Nós jogamos#We play#Pizza
+Eles jogam#They play#Pizza
+Eu durmo#I sleep#Pizza
+Você dorme#You sleep#Pizza
+Ele dorme#He sleeps#Pizza
+Nós dormimos#We sleep#Pizza
+Eles dormem#They sleep#Pizza
+Eu leio#I read#Pizza
+Você lê#You read#Pizza
+Ele lê#He reads#Pizza
+Nós lemos#We read#Pizza
+Eles leem#They read#Pizza
+Eu pulo#I jump#Pizza
+Você pula#You jump#Pizza
+Ele pula#He jumps#Pizza
+Nós pulamos#We jump#Pizza
+Eles pulam#They jump#Pizza
+Eu ajudo#I help#Pizza
+Você ajuda#You help#Pizza
+Ele ajuda#He helps#Pizza
+Nós ajudamos#We help#Pizza
+Eles ajudam#They help#Pizza
+Eu amo#I love#I adore#Pizza
+Você ama#You love#Pizza
+Ele ama#He loves#Pizza
+Nós amamos#We love#Pizza
+Eles amam#They love#Pizza
+Eu vejo#I see#Pizza
+Você vê#You see#Pizza
+Ele vê#He sees#Pizza
+Nós vemos#We see#Pizza
+Eles veem#They see#Pizza
+Eu digo#I say#I tell#Pizza
+Você diz#You say#Pizza
+Ele diz#He says#Pizza
+Nós dizemos#We say#Pizza
+Eles dizem#They say#Pizza
+Eu bebo#I drink#Pizza
+Você bebe#You drink#Pizza
+Ele bebe#He drinks#Pizza
+Nós bebemos#We drink#Pizza
+Eles bebem#They drink#Pizza
+Eu faço#I make#Pizza
+Você faz#You make#Pizza
+Ele faz#He makes#Pizza
+Nós fazemos#We make#Pizza
+Eles fazem#They make#Pizza
+Eu fico#I stay#Pizza
+Você fica#You stay#Pizza
+Ele fica#He stays#Pizza
+Nós ficamos#We stay#Pizza
+Eles ficam#They stay#Pizza
 
 
 
@@ -6476,6 +6476,7 @@ Quase nenhum deles voltou#Scarcely any of them came back
 
 
 }
+
 
 
 
