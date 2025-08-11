@@ -30,7 +30,7 @@ function parsePastas(raw) {
       .filter(Boolean)
       .map(l => {
         const parts = l.split('#').map(s => s.trim());
-        return [parts[0], parts.slice(1)];
+        return [parts[0], parts.slice(1).filter(Boolean)];
       });
   }
   return result;
@@ -1325,7 +1325,10 @@ function verificarResposta() {
 
   const stats = ensureModeStats(selectedMode);
 
-  const [pt, ens] = frasesArr[fraseIndex];
+  const [pt, ensRaw] = frasesArr[fraseIndex];
+  const ens = Array.isArray(ensRaw)
+    ? ensRaw
+    : String(ensRaw).split('#').map(s => s.trim()).filter(Boolean);
 
   const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/gi, "").toLowerCase();
   const esperados = esperadoLang === 'pt' ? [pt] : ens;
