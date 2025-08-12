@@ -1023,3 +1023,15 @@ body.versus-white #versus-phrase {
   }
 }
 
+#mode8-presents {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+#mode8-presents img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}

@@ -124,8 +124,10 @@ async function carregarPresentes() {
 function setupMode8() {
   const controls = document.getElementById('mode8-controls');
   const selector = document.getElementById('song-select');
+  const presents = document.getElementById('mode8-presents');
   songAudio = document.getElementById('song-audio');
   if (controls) controls.style.display = 'flex';
+  if (presents) presents.style.display = 'flex';
   if (!selector || !songAudio) return;
   fetch('/songs/list')
     .then(r => r.json())
@@ -138,6 +140,19 @@ function setupMode8() {
         selector.appendChild(opt);
       });
     });
+  if (presents) {
+    fetch('/presents/list')
+      .then(r => r.json())
+      .then(files => {
+        presents.innerHTML = '';
+        files.forEach(f => {
+          const img = document.createElement('img');
+          img.src = `presents/${encodeURIComponent(f)}`;
+          img.alt = f.replace(/\.[^.]+$/, '');
+          presents.appendChild(img);
+        });
+      });
+  }
   selector.onchange = () => {
     if (!selector.value) return;
     songAudio.src = selector.value;
@@ -1252,6 +1267,8 @@ function beginGame() {
     updateModeIcons();
     const m8 = document.getElementById('mode8-controls');
     if (m8) m8.style.display = selectedMode === 8 ? 'flex' : 'none';
+    const m8p = document.getElementById('mode8-presents');
+    if (m8p) m8p.style.display = selectedMode === 8 ? 'flex' : 'none';
     switch (selectedMode) {
       case 1:
         mostrarTexto = 'en';
