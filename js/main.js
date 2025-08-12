@@ -1,5 +1,7 @@
 let pastas = {};
 let pastasVersus = [];
+let pastaVersusAtual = 1;
+let acertosModo7 = 0;
 let photoMap = {};
 let presentMap = {};
 let frasesCorretas = {};
@@ -83,10 +85,13 @@ async function carregarPastas() {
   try {
     const resp2 = await fetch('data/pastasversus.json');
     const data = await resp2.json();
-    pastasVersus = data.frases.map(l => {
-      const parts = l.split('#').map(s => s.trim());
-      return [parts[0], parts.slice(1).filter(Boolean)];
-    });
+    pastasVersus = data.pastas.map(p => ({
+      nome: p.nome,
+      frases: p.frases.map(l => {
+        const parts = l.split('#').map(s => s.trim());
+        return [parts[0], parts.slice(1).filter(Boolean)];
+      })
+    }));
   } catch (e) {
     pastasVersus = [];
   }
@@ -1085,6 +1090,10 @@ function startGame(modo) {
   }
   selectedMode = modo;
   points = INITIAL_POINTS;
+  if (modo === 7) {
+    acertosModo7 = 0;
+    pastaVersusAtual = 1;
+  }
   saveTotals();
   atualizarBarraProgresso();
   updateModeIcons();
@@ -1401,7 +1410,12 @@ function embaralhar(array) {
 
 function carregarFrases() {
   if (selectedMode === 7) {
-    frasesArr = embaralhar(pastasVersus).slice(0, TOTAL_FRASES);
+    const pasta = pastasVersus[pastaVersusAtual - 1];
+    if (pasta) {
+      frasesArr = embaralhar(pasta.frases).slice(0, TOTAL_FRASES);
+    } else {
+      frasesArr = [];
+    }
     fraseIndex = 0;
     setTimeout(() => mostrarFrase(), 300);
     atualizarBarraProgresso();
@@ -1609,11 +1623,25 @@ function verificarResposta() {
     saveTotals();
     consecutiveErrors = 0;
     resultado.textContent = '';
-    const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
+    const threshold = selectedMode === 6 ? MODE6_THRESHOLD : selectedMode === 7 ? Infinity : COMPLETION_THRESHOLD;
     const reached = points >= threshold && !completedModes[selectedMode];
     flashSuccess(() => {
-      if (reached) finishMode();
-      else continuar();
+      if (selectedMode === 7) {
+        acertosModo7++;
+        if (acertosModo7 >= 10) {
+          acertosModo7 = 0;
+          if (pastaVersusAtual < pastasVersus.length) {
+            pastaVersusAtual++;
+          }
+          carregarFrases();
+        } else {
+          continuar();
+        }
+        atualizarBarraProgresso();
+      } else {
+        if (reached) finishMode();
+        else continuar();
+      }
     });
   } else {
     stats.totalPhrases++;
@@ -1658,9 +1686,15 @@ function verificarResposta() {
         consecutiveErrors = 0;
       }
       pauseGame(true);
+      if (selectedMode === 7) {
+        atualizarBarraProgresso();
+      }
     });
+    if (selectedMode === 7) {
+      acertosModo7 = 0;
+    }
   }
-    atualizarBarraProgresso();
+  if (selectedMode !== 7) atualizarBarraProgresso();
     // Pontuação de acertos ocultada
   }
 
@@ -1682,6 +1716,20 @@ function atualizarBarraProgresso() {
       filled.style.width = perc + '%';
     } else {
       filled.style.width = '0%';
+    }
+    return;
+  }
+  if (selectedMode === 7) {
+    const score = document.getElementById('score');
+    if (score) score.textContent = `Nivel ${pastaVersusAtual}`;
+    const perc = (acertosModo7 / 10) * 100;
+    filled.style.width = perc + '%';
+    const barColor = calcularCor(acertosModo7 * (COMPLETION_THRESHOLD / 10));
+    filled.style.backgroundColor = barColor;
+    updateGradientColor(barColor);
+    const icon = document.getElementById('mode-icon');
+    if (icon) {
+      icon.style.opacity = reconhecimentoAtivo ? '1' : '0.5';
     }
     return;
   }
