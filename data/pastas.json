@@ -7,82 +7,8 @@ const pastas = {
   
 
 
-Eu gosto#I like#Pizza
-Você é#You are#Pizza
-Eu sou#I am#Pizza
-Eu penso#I think#Pizza
-Você pensa#You think#Pizza
-Eu danço#I dance#Pizza
-Ele dança#He dances#Pizza
-Nós somos#We are#Pizza
-Ele é#He is#Pizza
-Ela é#She is#Pizza
-Nós gostamos#We like#Pizza
-Eu como#I eat#Pizza
-Você come#You eat#Pizza
-Ele come#He eats#Pizza
-Nós comemos#We eat#Pizza
-Eles comem#They eat#Pizza
-Eu corro#I run#Pizza
-Você corre#You run#Pizza
-Ele corre#He runs#Pizza
-Nós corremos#We run#Pizza
-Eles correm#They run#Pizza
-Eu jogo#I play#Pizza
-Você joga#You play#Pizza
-Ele joga#He plays#Pizza
-Nós jogamos#We play#Pizza
-Eles jogam#They play#Pizza
-Eu durmo#I sleep#Pizza
-Você dorme#You sleep#Pizza
-Ele dorme#He sleeps#Pizza
-Nós dormimos#We sleep#Pizza
-Eles dormem#They sleep#Pizza
-Eu leio#I read#Pizza
-Você lê#You read#Pizza
-Ele lê#He reads#Pizza
-Nós lemos#We read#Pizza
-Eles leem#They read#Pizza
-Eu pulo#I jump#Pizza
-Você pula#You jump#Pizza
-Ele pula#He jumps#Pizza
-Nós pulamos#We jump#Pizza
-Eles pulam#They jump#Pizza
-Eu ajudo#I help#Pizza
-Você ajuda#You help#Pizza
-Ele ajuda#He helps#Pizza
-Nós ajudamos#We help#Pizza
-Eles ajudam#They help#Pizza
-Eu amo#I love#I adore#Pizza
-Você ama#You love#Pizza
-Ele ama#He loves#Pizza
-Nós amamos#We love#Pizza
-Eles amam#They love#Pizza
-Eu vejo#I see#Pizza
-Você vê#You see#Pizza
-Ele vê#He sees#Pizza
-Nós vemos#We see#Pizza
-Eles veem#They see#Pizza
-Eu digo#I say#I tell#Pizza
-Você diz#You say#Pizza
-Ele diz#He says#Pizza
-Nós dizemos#We say#Pizza
-Eles dizem#They say#Pizza
-Eu bebo#I drink#Pizza
-Você bebe#You drink#Pizza
-Ele bebe#He drinks#Pizza
-Nós bebemos#We drink#Pizza
-Eles bebem#They drink#Pizza
-Eu faço#I make#Pizza
-Você faz#You make#Pizza
-Ele faz#He makes#Pizza
-Nós fazemos#We make#Pizza
-Eles fazem#They make#Pizza
-Eu fico#I stay#Pizza
-Você fica#You stay#Pizza
-Ele fica#He stays#Pizza
-Nós ficamos#We stay#Pizza
-Eles ficam#They stay#Pizza
+Eu te amo#I love you
+Eu te adoro# I adore you
 
 
 
@@ -6476,6 +6402,7 @@ Quase nenhum deles voltou#Scarcely any of them came back
 
 
 }
+
 
 
 
