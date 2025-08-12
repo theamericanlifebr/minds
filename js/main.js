@@ -350,6 +350,9 @@ function getTimeMetrics(len, mode) {
 }
 let completedModes = JSON.parse(localStorage.getItem('completedModes') || '{}');
 let unlockedModes = JSON.parse(localStorage.getItem('unlockedModes') || '{}');
+for (let m = 7; m <= 12; m++) {
+  if (unlockedModes[m] === undefined) unlockedModes[m] = true;
+}
 let modeIntroShown = JSON.parse(localStorage.getItem('modeIntroShown') || '{}');
 let points = parseInt(localStorage.getItem('points') || INITIAL_POINTS, 10);
 let premioBase = parseInt(localStorage.getItem("premioBase"), 10) || 1000;
@@ -464,7 +467,13 @@ const modeImages = {
   3: 'selos%20modos%20de%20jogo/modo3.png',
   4: 'selos%20modos%20de%20jogo/modo4.png',
   5: 'selos%20modos%20de%20jogo/modo5.png',
-  6: 'selos%20modos%20de%20jogo/modo6.png'
+  6: 'selos%20modos%20de%20jogo/modo6.png',
+  7: 'selos%20modos%20de%20jogo/modo7.png',
+  8: 'selos%20modos%20de%20jogo/modo8.png',
+  9: 'selos%20modos%20de%20jogo/modo9.png',
+  10: 'selos%20modos%20de%20jogo/modo10.png',
+  11: 'selos%20modos%20de%20jogo/modo11.png',
+  12: 'selos%20modos%20de%20jogo/modo12.png'
 };
 
 const modeTransitions = {
@@ -711,6 +720,23 @@ function getHighestUnlockedMode() {
 
 function checkForMenuLevelUp() {
   // Level advancement is triggered only after finishing mode 6
+}
+
+let modePage = 1;
+function setModePage(page) {
+  modePage = page;
+  const g1 = document.getElementById('mode-group-1');
+  const g2 = document.getElementById('mode-group-2');
+  const b1 = document.getElementById('mode-buttons-1');
+  const b2 = document.getElementById('mode-buttons-2');
+  if (g1 && g2) {
+    g1.style.display = page === 1 ? 'grid' : 'none';
+    g2.style.display = page === 2 ? 'grid' : 'none';
+  }
+  if (b1 && b2) {
+    b1.style.display = page === 1 ? 'flex' : 'none';
+    b2.style.display = page === 2 ? 'flex' : 'none';
+  }
 }
 
 function performMenuLevelUp() {
@@ -1241,7 +1267,7 @@ function mostrarFrase() {
   if (inputTimeout) clearTimeout(inputTimeout);
   if (fraseIndex >= frasesArr.length) fraseIndex = 0;
   const [pt, ens] = frasesArr[fraseIndex];
-  const en = ens[Math.floor(Math.random() * ens.length)];
+  const en = ens[0];
   const texto = document.getElementById("texto-exibicao");
   if (mostrarTexto === 'pt') texto.textContent = pt;
   else if (mostrarTexto === 'en') texto.textContent = en;
@@ -1803,6 +1829,10 @@ async function initGame() {
       }
     }
     await initGame();
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') setModePage(2);
+      if (e.key === 'ArrowLeft') setModePage(1);
+    });
     if (isMobile) {
       let startX = 0, startY = 0;
       document.addEventListener('touchstart', e => {
@@ -1815,7 +1845,12 @@ async function initGame() {
         const dx = t.screenX - startX;
         const dy = t.screenY - startY;
         if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-          if (dx > 0) {
+          const menuEl = document.getElementById('menu');
+          const menuVisible = menuEl && menuEl.style.display !== 'none';
+          if (menuVisible) {
+            if (dx < 0) setModePage(2);
+            else setModePage(1);
+          } else if (dx > 0) {
             toggleTheme();
           } else {
             reportLastError();
