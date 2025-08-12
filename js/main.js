@@ -1,4 +1,6 @@
 let pastas = {};
+let pastasVersus = [];
+let photoFiles = [];
 let frasesCorretas = {};
 const homophonesMap = new Map();
 
@@ -74,6 +76,42 @@ async function carregarPastas() {
     obj[m[1]] = m[2];
   }
   pastas = parsePastas(obj);
+
+  try {
+    const resp2 = await fetch('data/pastasversus.json');
+    const data = await resp2.json();
+    pastasVersus = data.frases.map(l => {
+      const parts = l.split('#').map(s => s.trim());
+      return [parts[0], parts.slice(1).filter(Boolean)];
+    });
+  } catch (e) {
+    pastasVersus = [];
+  }
+}
+
+async function carregarFotos() {
+  try {
+    const resp = await fetch('/photos/list');
+    const files = await resp.json();
+    photoFiles = files.map(f => f.split('#')[1] || f);
+  } catch (e) {
+    photoFiles = [];
+  }
+}
+
+function atualizarImagemModo() {
+  const icon = document.getElementById('mode-icon');
+  if (!icon) return;
+  if (selectedMode === 7) {
+    if (photoFiles.length > 0) {
+      const f = photoFiles[Math.floor(Math.random() * photoFiles.length)];
+      icon.src = `photos/${f}`;
+      icon.style.opacity = '1';
+      return;
+    }
+  }
+  icon.src = modeImages[selectedMode];
+  icon.style.opacity = '0.5';
 }
 
 function ehQuaseCorreto(res, esp) {
@@ -1159,6 +1197,11 @@ function beginGame() {
       voz = null;
       esperadoLang = 'en';
       break;
+    case 7:
+      mostrarTexto = 'pt';
+      voz = null;
+      esperadoLang = 'en';
+      break;
     }
     if (reconhecimento) {
       if (selectedMode === 1) {
@@ -1237,15 +1280,22 @@ function embaralhar(array) {
 }
 
 function carregarFrases() {
+  if (selectedMode === 7) {
+    frasesArr = embaralhar(pastasVersus).slice(0, TOTAL_FRASES);
+    fraseIndex = 0;
+    setTimeout(() => mostrarFrase(), 300);
+    atualizarBarraProgresso();
+    return;
+  }
   let principais = [], anteriores = [];
   if (pastas[pastaAtual]) {
-	principais = pastas[pastaAtual];
+        principais = pastas[pastaAtual];
 
   }
   if (pastaAtual > 1) {
     for (let i = 1; i < pastaAtual; i++) {
       if (pastas[i]) {
-		const frases = pastas[i];
+                const frases = pastas[i];
 
         anteriores = anteriores.concat(frases);
       }
@@ -1268,6 +1318,7 @@ function mostrarFrase() {
   if (fraseIndex >= frasesArr.length) fraseIndex = 0;
   const [pt, ens] = frasesArr[fraseIndex];
   const en = ens[0];
+  atualizarImagemModo();
   const texto = document.getElementById("texto-exibicao");
   if (mostrarTexto === 'pt') texto.textContent = pt;
   else if (mostrarTexto === 'en') texto.textContent = en;
@@ -1687,6 +1738,7 @@ async function initGame() {
   }
   await carregarPastas();
   await carregarFrasesCorretas();
+  await carregarFotos();
   updateLevelIcon();
   updateModeIcons();
   if (!ilifeDone) {
