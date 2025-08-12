@@ -224,12 +224,14 @@ body.dark-mode #clock {
 }
 
 #menu-modes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
   width: 100%;
   max-width: 90vw;
   margin-top: 50px;
+}
+#menu-modes .mode-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
   justify-items: center;
 }
 
@@ -442,8 +444,11 @@ body.dark-mode #clock {
   width: 100%;
   display: flex;
   justify-content: center;
-  gap: 10px;
   z-index: 999;
+}
+#mode-buttons .mode-group {
+  display: flex;
+  gap: 10px;
 }
 
 #mode-buttons img {
