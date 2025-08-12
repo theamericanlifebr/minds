@@ -1,21 +1,38 @@
 {
-  "frases": [
-
-    
-    "Eu#I#Eye#Aye#Ai",
-    "Você#You#Yoo#U#Yu",
-    "Ele#He#Hi#Hee#Hie",
-    "Ela#She#Shi#Shy#Chee",
-    "Nós#We#Wi#Wii#Oui",
-    "Eles#They#Day#Dei#Dey",
-    "Isso#It#Eat#Eet#Itt",
-    "É#Is#Iz#His#Ease",
-    "São#Are#Ar#R#Aar",
-    "Sou#Am#Em#Ham#An",
-    "Ter#Have#Hav#Haff#Havv",
-    "Fazer#Do#Doo#Dew#Due", 
-    "laranja#orange"
-]
-
-  
+  "pastas": [
+    {
+      "nome": "pasta1",
+      "frases": [
+        "Eu#I#Eye#Aye#Ai",
+        "Você#You#Yoo#U#Yu",
+        "Ele#He#Hi#Hee#Hie",
+        "Ela#She#Shi#Shy#Chee",
+        "Nós#We#Wi#Wii#Oui",
+        "Eles#They#Day#Dei#Dey",
+        "Isso#It#Eat#Eet#Itt",
+        "É#Is#Iz#His#Ease",
+        "São#Are#Ar#R#Aar",
+        "Sou#Am#Em#Ham#An",
+        "Ter#Have#Hav#Haff#Havv",
+        "Fazer#Do#Doo#Dew#Due"
+      ]
+    },
+    {
+      "nome": "pasta2",
+      "frases": [
+        "Eu gosto#I like#Eye like#Aye like#Ai like",
+        "Eu sou#I am#Eye am#Aye am#Ai am",
+        "Isso é#It is#Eat is#Eet is#Itt is",
+        "Você pode#You can#Yoo can#U can#Yu can",
+        "Ele vai#He go#Hi go#Hee go#Hie go",
+        "Ela viu#She saw#Shi saw#Shy saw#Chee saw",
+        "Nós somos#We are#Wi are#Wii are#Oui are",
+        "Eles têm#They have#Day have#Dei have#Dey have",
+        "Eu tenho#I have#Eye have#Aye have#Ai have",
+        "Fazer bem#Do well#Doo well#Dew well#Due well",
+        "Ir lá#Go there#Gow there#Goe there#Goh there",
+        "Ver você#See you#Sea you#C you#Se you"
+      ]
+    }
+  ]
 }
