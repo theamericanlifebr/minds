@@ -1,5 +1,6 @@
 let pastas = {};
 let frasesCorretas = {};
+const homophonesMap = new Map();
 
 async function carregarFrasesCorretas() {
   try {
@@ -10,14 +11,18 @@ async function carregarFrasesCorretas() {
   }
 
   try {
-    const resp = await fetch('data/homophones.txt');
+    const resp = await fetch('data/homophones.json');
     const text = await resp.text();
+    homophonesMap.clear();
+    const norm = w => w.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/gi, '');
     text.split(/\n+/).forEach(l => {
       const parts = l.trim().toLowerCase().split('@').filter(Boolean);
       if (parts.length > 1) {
-        const [correta, ...variantes] = parts;
-        if (!frasesCorretas[correta]) frasesCorretas[correta] = [];
-        frasesCorretas[correta].push(...variantes);
+        const canonical = norm(parts[0]);
+        parts.forEach(p => {
+          const n = norm(p);
+          if (n) homophonesMap.set(n, canonical);
+        });
       }
     });
   } catch (e) {
@@ -33,7 +38,15 @@ function aplicarFrasesCorretas(texto) {
       t = t.replace(re, correta);
     });
   }
-  return t;
+  const norm = w => w.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/gi, '');
+  const tokens = t.split(/\b/);
+  for (let i = 0; i < tokens.length; i++) {
+    const n = norm(tokens[i]);
+    if (n && homophonesMap.has(n)) {
+      tokens[i] = homophonesMap.get(n);
+    }
+  }
+  return tokens.join('');
 }
 
 function parsePastas(raw) {
