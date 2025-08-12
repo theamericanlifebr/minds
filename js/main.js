@@ -3,6 +3,7 @@ let pastasVersus = [];
 let photoMap = {};
 let presentMap = {};
 let frasesCorretas = {};
+let songAudio = null;
 const homophonesMap = new Map();
 const normalizeKey = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
@@ -118,6 +119,42 @@ async function carregarPresentes() {
   } catch (e) {
     presentMap = {};
   }
+}
+
+function setupMode8() {
+  const controls = document.getElementById('mode8-controls');
+  const selector = document.getElementById('song-select');
+  songAudio = document.getElementById('song-audio');
+  if (controls) controls.style.display = 'flex';
+  if (!selector || !songAudio) return;
+  fetch('/songs/list')
+    .then(r => r.json())
+    .then(files => {
+      selector.innerHTML = '';
+      files.forEach(f => {
+        const opt = document.createElement('option');
+        opt.value = `songs/${encodeURIComponent(f)}`;
+        opt.textContent = f;
+        selector.appendChild(opt);
+      });
+    });
+  selector.onchange = () => {
+    if (!selector.value) return;
+    songAudio.src = selector.value;
+    songAudio.play();
+  };
+  songAudio.ontimeupdate = atualizarBarraProgresso;
+  songAudio.onended = atualizarBarraProgresso;
+  atualizarBarraProgresso();
+}
+
+function seekSong(delta) {
+  if (!songAudio) return;
+  let t = songAudio.currentTime + delta;
+  if (t < 0) t = 0;
+  if (songAudio.duration && t > songAudio.duration) t = songAudio.duration;
+  songAudio.currentTime = t;
+  atualizarBarraProgresso();
 }
 
 function atualizarImagemModo(pt, en) {
@@ -625,6 +662,9 @@ function stopCurrentGame() {
   if (reconhecimento) {
     reconhecimentoAtivo = false;
     try { reconhecimento.stop(); } catch {}
+  }
+  if (songAudio) {
+    songAudio.pause();
   }
 }
 
@@ -1193,6 +1233,8 @@ function beginGame() {
     if (texto) texto.style.opacity = '1';
     updateLevelIcon();
     updateModeIcons();
+    const m8 = document.getElementById('mode8-controls');
+    if (m8) m8.style.display = selectedMode === 8 ? 'flex' : 'none';
     switch (selectedMode) {
       case 1:
         mostrarTexto = 'en';
@@ -1229,6 +1271,15 @@ function beginGame() {
       voz = null;
       esperadoLang = 'en';
       break;
+    case 8:
+      mostrarTexto = 'none';
+      voz = null;
+      esperadoLang = 'en';
+      break;
+    }
+    if (selectedMode === 8) {
+      setupMode8();
+      return;
     }
     if (reconhecimento) {
       if (selectedMode === 1) {
@@ -1580,9 +1631,20 @@ function continuar() {
 }
 
 function atualizarBarraProgresso() {
+  const filled = document.getElementById('barra-preenchida');
+  if (selectedMode === 8) {
+    const score = document.getElementById('score');
+    if (score) score.textContent = '';
+    if (songAudio && songAudio.duration) {
+      const perc = (songAudio.currentTime / songAudio.duration) * 100;
+      filled.style.width = perc + '%';
+    } else {
+      filled.style.width = '0%';
+    }
+    return;
+  }
   const premioAtual = premioBase;
   document.getElementById('score').textContent = `PREMIO (${Math.round(premioAtual)}) pontos: (${Math.round(points)})`;
-  const filled = document.getElementById('barra-preenchida');
   const limite = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
   const perc = Math.max(0, Math.min(points, limite)) / limite * 100;
   filled.style.width = perc + '%';
@@ -1862,6 +1924,10 @@ async function initGame() {
       if (lock) { lock.currentTime = 0; lock.play(); }
       return;
     }
+    if (selectedMode === 8) {
+      if (e.key === 'ArrowLeft') { seekSong(-5); return; }
+      if (e.key === 'ArrowRight') { seekSong(5); return; }
+    }
     if (e.key.toLowerCase() === 'p') {
       if (!paused) pauseGame();
       return;
@@ -1930,6 +1996,9 @@ async function initGame() {
           if (menuVisible) {
             if (dx < 0) setModePage(2);
             else setModePage(1);
+          } else if (selectedMode === 8) {
+            if (dx < 0) seekSong(-5);
+            else seekSong(5);
           } else if (dx > 0) {
             toggleTheme();
           } else {
