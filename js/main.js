@@ -8,6 +8,21 @@ async function carregarFrasesCorretas() {
   } catch (e) {
     frasesCorretas = {};
   }
+
+  try {
+    const resp = await fetch('data/homophones.txt');
+    const text = await resp.text();
+    text.split(/\n+/).forEach(l => {
+      const parts = l.trim().toLowerCase().split('@').filter(Boolean);
+      if (parts.length > 1) {
+        const [correta, ...variantes] = parts;
+        if (!frasesCorretas[correta]) frasesCorretas[correta] = [];
+        frasesCorretas[correta].push(...variantes);
+      }
+    });
+  } catch (e) {
+    // ignore missing file
+  }
 }
 
 function aplicarFrasesCorretas(texto) {
