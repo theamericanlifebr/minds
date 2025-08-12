@@ -206,19 +206,6 @@ body.dark-mode #intro-overlay {
   text-align: center;
 }
 
-#menu-logo {
-  width: 150px;
-  height: 150px;
-  margin-top: 30px;
-}
-
-body.dark-mode #menu-logo {
-  filter: none;
-}
-body.gradient-mode #menu-logo {
-  filter: none;
-}
-
 body.dark-mode #clock {
   color: #fff;
 }
