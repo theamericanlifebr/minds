@@ -14,11 +14,10 @@
         "São#Are#Ar#R#Aar",
         "Sou#Am#Em#Ham#An",
         "Ter#Have#Hav#Haff#Havv",
-             "Fazer#Do#Doo#Dew#Due"
+        "Fazer#Do#Doo#Dew#Due"
       ]
     },
     {
-
       "nome": "pasta2",
       "frases": [
         "Eu gosto#I like#Eye like#Aye like#Ai like",
@@ -36,4 +35,3 @@
       ]
     }
   ]
-}
