@@ -18,6 +18,17 @@ app.get('/photos/list', (req, res) => {
   });
 });
 
+app.get('/presents/list', (req, res) => {
+  const dir = path.join(__dirname, 'presents');
+  fs.readdir(dir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Unable to list presents' });
+    }
+    const images = files.filter(f => /\.(png|jpe?g|gif)$/i.test(f));
+    res.json(images);
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
