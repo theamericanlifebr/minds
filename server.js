@@ -29,6 +29,17 @@ app.get('/presents/list', (req, res) => {
   });
 });
 
+app.get('/songs/list', (req, res) => {
+  const dir = path.join(__dirname, 'songs');
+  fs.readdir(dir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Unable to list songs' });
+    }
+    const songs = files.filter(f => /\.(mp3|m4a|wav|ogg)$/i.test(f));
+    res.json(songs);
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
