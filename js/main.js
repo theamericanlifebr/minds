@@ -1,7 +1,6 @@
 let pastas = {};
-let pastasVersus = [];
-let pastaVersusAtual = 1;
 let acertosModo7 = 0;
+let currentPastaName = 'pastas';
 let photoMap = {};
 let presentMap = {};
 let frasesCorretas = {};
@@ -71,8 +70,8 @@ function parsePastas(raw) {
   return result;
 }
 
-async function carregarPastas() {
-  const resp = await fetch('data/pastas.json');
+async function carregarPastas(file = 'data/pastas.json') {
+  const resp = await fetch(file);
   const text = await resp.text();
   const obj = {};
   const regex = /(\d+):\s*`([\s\S]*?)`/g;
@@ -81,20 +80,6 @@ async function carregarPastas() {
     obj[m[1]] = m[2];
   }
   pastas = parsePastas(obj);
-
-  try {
-    const resp2 = await fetch('data/pastasversus.json');
-    const data = await resp2.json();
-    pastasVersus = data.pastas.map(p => ({
-      nome: p.nome,
-      frases: p.frases.map(l => {
-        const parts = l.split('#').map(s => s.trim());
-        return [parts[0], parts.slice(1).filter(Boolean)];
-      })
-    }));
-  } catch (e) {
-    pastasVersus = [];
-  }
 }
 
 async function carregarFotos() {
@@ -1083,17 +1068,24 @@ function stopTryAgainAnimation() {
   tryAgainColorInterval = null;
 }
 
-function startGame(modo) {
+async function startGame(modo) {
   const prevMode = selectedMode;
   if (prevMode !== modo) {
     recordModeTime(prevMode);
   }
   selectedMode = modo;
-  points = INITIAL_POINTS;
+  let pastasFile = 'data/pastas.json';
+  currentPastaName = 'pastas';
   if (modo === 7) {
+    pastasFile = 'data/planting.json';
+    currentPastaName = 'planting';
     acertosModo7 = 0;
-    pastaVersusAtual = 1;
+  } else if (modo === 9) {
+    pastasFile = 'data/mindset.json';
+    currentPastaName = 'mindset';
   }
+  await carregarPastas(pastasFile);
+  points = INITIAL_POINTS;
   saveTotals();
   atualizarBarraProgresso();
   updateModeIcons();
@@ -1410,12 +1402,8 @@ function embaralhar(array) {
 
 function carregarFrases() {
   if (selectedMode === 7) {
-    const pasta = pastasVersus[pastaVersusAtual - 1];
-    if (pasta) {
-      frasesArr = embaralhar(pasta.frases).slice(0, TOTAL_FRASES);
-    } else {
-      frasesArr = [];
-    }
+    const principais = pastas[pastaAtual] || [];
+    frasesArr = embaralhar(principais).slice(0, TOTAL_FRASES);
     fraseIndex = 0;
     setTimeout(() => mostrarFrase(), 300);
     atualizarBarraProgresso();
@@ -1424,7 +1412,6 @@ function carregarFrases() {
   let principais = [], anteriores = [];
   if (pastas[pastaAtual]) {
         principais = pastas[pastaAtual];
-
   }
   if (pastaAtual > 1) {
     for (let i = 1; i < pastaAtual; i++) {
@@ -1630,8 +1617,9 @@ function verificarResposta() {
         acertosModo7++;
         if (acertosModo7 >= 10) {
           acertosModo7 = 0;
-          if (pastaVersusAtual < pastasVersus.length) {
-            pastaVersusAtual++;
+          if (pastas[pastaAtual + 1]) {
+            pastaAtual++;
+            updateLevelIcon();
           }
           carregarFrases();
         } else {
@@ -1721,7 +1709,7 @@ function atualizarBarraProgresso() {
   }
   if (selectedMode === 7) {
     const score = document.getElementById('score');
-    if (score) score.textContent = `Nivel ${pastaVersusAtual}`;
+    if (score) score.textContent = `${currentPastaName} - Nivel ${pastaAtual}`;
     const perc = (acertosModo7 / 10) * 100;
     filled.style.width = perc + '%';
     const barColor = calcularCor(acertosModo7 * (COMPLETION_THRESHOLD / 10));
