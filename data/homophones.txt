@@ -1,6 +1,7 @@
-hear@here@heir
-flower@flour
-pair@pear@pare
-to@too@two
-see@sea
-buy@by@bye
+hear@like
+flower@like
+pair@pear@like
+to@too@like
+see@like
+buy@like
+
