@@ -148,6 +148,23 @@ function setupMode8() {
   atualizarBarraProgresso();
 }
 
+function setupMode9() {
+  songAudio = document.getElementById('song-audio');
+  if (!songAudio) return;
+  fetch('/songs/list')
+    .then(r => r.json())
+    .then(files => {
+      if (!files.length) return;
+      const playRandom = () => {
+        const idx = Math.floor(Math.random() * files.length);
+        songAudio.src = `songs/${encodeURIComponent(files[idx])}`;
+        songAudio.play();
+      };
+      songAudio.onended = playRandom;
+      playRandom();
+    });
+}
+
 function seekSong(delta) {
   if (!songAudio) return;
   let t = songAudio.currentTime + delta;
@@ -1271,15 +1288,23 @@ function beginGame() {
       voz = null;
       esperadoLang = 'en';
       break;
-    case 8:
-      mostrarTexto = 'none';
-      voz = null;
-      esperadoLang = 'en';
-      break;
+      case 8:
+        mostrarTexto = 'none';
+        voz = null;
+        esperadoLang = 'en';
+        break;
+      case 9:
+        mostrarTexto = 'pt';
+        voz = null;
+        esperadoLang = 'en';
+        break;
     }
     if (selectedMode === 8) {
       setupMode8();
       return;
+    }
+    if (selectedMode === 9) {
+      setupMode9();
     }
     if (reconhecimento) {
       if (selectedMode === 1) {
