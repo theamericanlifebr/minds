@@ -1,8 +1,10 @@
 let pastas = {};
 let pastasVersus = [];
 let photoMap = {};
+let presentMap = {};
 let frasesCorretas = {};
 const homophonesMap = new Map();
+const normalizeKey = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
 async function carregarFrasesCorretas() {
   try {
@@ -96,21 +98,41 @@ async function carregarFotos() {
     photoMap = {};
     files.forEach(f => {
       let name = f.split('#')[1] || f;
-      name = name.replace(/\.[^.]+$/, '').toLowerCase();
-      photoMap[name] = f;
+      name = name.replace(/\.[^.]+$/, '');
+      photoMap[normalizeKey(name)] = f;
     });
   } catch (e) {
     photoMap = {};
   }
 }
 
-function atualizarImagemModo(en) {
+async function carregarPresentes() {
+  try {
+    const resp = await fetch('/presents/list');
+    const files = await resp.json();
+    presentMap = {};
+    files.forEach(f => {
+      const name = f.replace(/\.[^.]+$/, '');
+      presentMap[normalizeKey(name)] = f;
+    });
+  } catch (e) {
+    presentMap = {};
+  }
+}
+
+function atualizarImagemModo(pt, en) {
   const icon = document.getElementById('mode-icon');
   if (!icon) return;
   if (selectedMode === 7) {
-    const key = en.toLowerCase();
-    if (photoMap[key]) {
-      icon.src = `photos/${photoMap[key]}`;
+    const presentKey = normalizeKey(`${pt}#${en}`);
+    if (presentMap[presentKey]) {
+      icon.src = `presents/${presentMap[presentKey]}`;
+      icon.style.opacity = '1';
+      return;
+    }
+    const photoKey = normalizeKey(en);
+    if (photoMap[photoKey]) {
+      icon.src = `photos/${photoMap[photoKey]}`;
       icon.style.opacity = '1';
       return;
     }
@@ -1323,7 +1345,7 @@ function mostrarFrase() {
   if (fraseIndex >= frasesArr.length) fraseIndex = 0;
   const [pt, ens] = frasesArr[fraseIndex];
   const en = ens[0];
-  atualizarImagemModo(en);
+  atualizarImagemModo(pt, en);
   const texto = document.getElementById("texto-exibicao");
   if (mostrarTexto === 'pt') texto.textContent = pt;
   else if (mostrarTexto === 'en') texto.textContent = en;
@@ -1744,6 +1766,7 @@ async function initGame() {
   await carregarPastas();
   await carregarFrasesCorretas();
   await carregarFotos();
+  await carregarPresentes();
   updateLevelIcon();
   updateModeIcons();
   if (!ilifeDone) {
