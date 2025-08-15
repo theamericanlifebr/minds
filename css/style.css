@@ -74,8 +74,9 @@ body.versus-black #top-nav a {
 body.versus-blue,
 body.versus-white,
 body.versus-black {
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 
