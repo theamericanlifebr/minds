@@ -276,6 +276,8 @@ let dropdownUnlocked = false;
 
 
 let frasesArr = [], fraseIndex = 0;
+let levelFrases = [];
+let levelLoaded = 0;
 let acertosTotais = parseInt(localStorage.getItem('acertosTotais') || '0', 10);
 let errosTotais = parseInt(localStorage.getItem('errosTotais') || '0', 10);
 let tentativasTotais = parseInt(localStorage.getItem('tentativasTotais') || '0', 10);
@@ -286,7 +288,7 @@ let voz = 'en';
 let esperadoLang = 'pt';
 let timerInterval = null;
 let inputTimeout = null;
-const TOTAL_FRASES = 25;
+const TOTAL_FRASES = 12;
 let selectedMode = 1;
 // Removed difficulty selection; game always starts on easy mode
 const INITIAL_POINTS = 0;
@@ -410,7 +412,10 @@ function toggleTheme() {
 const phraseDisplay = document.getElementById('texto-exibicao');
 if (phraseDisplay) {
   phraseDisplay.addEventListener('click', togglePt);
-  phraseDisplay.addEventListener('dblclick', () => {
+}
+const modeIconRepeat = document.getElementById('mode-icon');
+if (modeIconRepeat) {
+  modeIconRepeat.addEventListener('click', () => {
     if (!frasesArr[fraseIndex]) return;
     const [, ensRaw] = frasesArr[fraseIndex];
     const ens = Array.isArray(ensRaw) ? ensRaw[0] : String(ensRaw).split('#')[0].trim();
@@ -556,7 +561,7 @@ function resumeGame() {
     mostrarFrase();
     pausedBySilence = false;
   } else {
-    continuar();
+    mostrarFrase();
   }
 }
 
@@ -875,29 +880,7 @@ async function startGame(modo) {
   document.getElementById('visor').style.display = 'none';
   const icon = document.getElementById('mode-icon');
   if (icon) icon.style.display = 'none';
-  const start = () => beginGame();
-  if (!modeIntroShown[modo]) {
-    if (modo === 1) {
-      showMode1Intro(() => {
-        modeIntroShown[1] = true;
-        localStorage.setItem('modeIntroShown', JSON.stringify(modeIntroShown));
-        start();
-      });
-    } else {
-      const info = modeIntros[modo];
-      if (info) {
-        showModeIntro(info, () => {
-          modeIntroShown[modo] = true;
-          localStorage.setItem('modeIntroShown', JSON.stringify(modeIntroShown));
-          start();
-        });
-      } else {
-        start();
-      }
-    }
-  } else {
-    showShortModeIntro(modo, start);
-  }
+  beginGame();
 }
 
 function showMode1Intro(callback) {
@@ -1176,26 +1159,12 @@ function carregarFrases() {
     atualizarBarraProgresso();
     return;
   }
-  let principais = [], anteriores = [];
-  if (pastas[pastaAtual]) {
-        principais = pastas[pastaAtual];
+  if (levelLoaded !== pastaAtual || levelFrases.length === 0) {
+    const principais = pastas[pastaAtual] || [];
+    levelFrases = embaralhar(principais).slice(0, TOTAL_FRASES);
+    levelLoaded = pastaAtual;
   }
-  if (pastaAtual > 1) {
-    for (let i = 1; i < pastaAtual; i++) {
-      if (pastas[i]) {
-                const frases = pastas[i];
-
-        anteriores = anteriores.concat(frases);
-      }
-    }
-  }
-  const qtdPrincipais = pastaAtual === 1 ? TOTAL_FRASES : Math.round(TOTAL_FRASES * 0.8);
-  const qtdAnteriores = TOTAL_FRASES - qtdPrincipais;
-  frasesArr = [].concat(
-    embaralhar(principais).slice(0, qtdPrincipais),
-    embaralhar(anteriores).slice(0, qtdAnteriores)
-  );
-  frasesArr = embaralhar(frasesArr);
+  frasesArr = [...levelFrases];
   fraseIndex = 0;
   setTimeout(() => mostrarFrase(), 300);
   atualizarBarraProgresso();
@@ -1346,8 +1315,9 @@ function verificarResposta() {
     saveTotals();
     consecutiveErrors = 0;
     resultado.textContent = '';
-    const threshold = selectedMode === 6 ? MODE6_THRESHOLD : selectedMode === 7 ? Infinity : COMPLETION_THRESHOLD;
-    const reached = points >= threshold && !completedModes[selectedMode];
+    if (selectedMode !== 7) {
+      frasesArr.splice(fraseIndex, 1);
+    }
     flashSuccess(() => {
       if (selectedMode === 7) {
         acertosModo7++;
@@ -1359,12 +1329,17 @@ function verificarResposta() {
           }
           carregarFrases();
         } else {
-          continuar();
+          fraseIndex++;
+          mostrarFrase();
         }
         atualizarBarraProgresso();
       } else {
-        if (reached) finishMode();
-        else continuar();
+        if (frasesArr.length === 0) {
+          finishMode();
+        } else {
+          if (fraseIndex >= frasesArr.length) fraseIndex = 0;
+          mostrarFrase();
+        }
       }
     });
   } else {
@@ -1387,26 +1362,25 @@ function verificarResposta() {
     falar(esperado, esperadoLang);
     stopCurrentGame();
     consecutiveErrors++;
+    if (selectedMode !== 7) {
+      const cur = frasesArr[fraseIndex];
+      frasesArr.push(cur);
+      frasesArr.splice(fraseIndex, 1);
+    }
     flashError(esperado, () => {
       input.disabled = false;
       bloqueado = false;
-      if (selectedMode === 7) atualizarBarraProgresso();
-      continuar();
+      if (selectedMode === 7) {
+        atualizarBarraProgresso();
+        fraseIndex++;
+      }
+      mostrarFrase();
     });
     if (selectedMode === 7) {
       acertosModo7 = 0;
     }
   }
   if (selectedMode !== 7) atualizarBarraProgresso();
-    // Pontuação de acertos ocultada
-  }
-
-function continuar() {
-  if (transitioning) {
-    return;
-  }
-  fraseIndex++;
-  mostrarFrase();
 }
 
 function atualizarBarraProgresso() {
@@ -1460,31 +1434,12 @@ function finishMode() {
     unlockMode(next, 500);
     const audio = document.getElementById('somModoDesbloqueado');
     if (audio) { audio.currentTime = 0; audio.play(); }
-
-    if (selectedMode === 5) {
-      setTimeout(() => { continuar(); }, 500);
-    }
   }
 
   updateModeIcons();
 
   if (selectedMode === 6) {
-    const stats6 = ensureModeStats(6);
-    const total = stats6.totalPhrases || 0;
-    const acc = total ? (stats6.correct / total * 100).toFixed(2) : '0';
-    const avgPts = total ? (stats6.timePoints / total) : 0;
-    const speedPerc = ((avgPts / (TIME_POINT_REFS[6] || 100)) * 100) * SPEED_SCALE;
-    const details = JSON.parse(localStorage.getItem('levelDetails') || '[]');
-    details.push({ level: pastaAtual + 1, accuracy: acc, speed: speedPerc.toFixed(2), scaled: true });
-    localStorage.setItem('levelDetails', JSON.stringify(details));
-    document.querySelectorAll('#menu-modes img[data-mode="6"], #mode-buttons img[data-mode="6"]').forEach(img => {
-      img.src = 'selos%20modos%20de%20jogo/modostar.png';
-    });
-    const star = document.getElementById('somLevelStar');
-    if (star) { star.currentTime = 0; star.play(); }
-    levelUpReady = true;
-    goHome();
-    enforceStarClick();
+    nextMode();
   }
 }
 
@@ -1493,30 +1448,20 @@ function nextMode() {
   stopCurrentGame();
   transitioning = true;
   if (selectedMode < 6) {
-    const current = selectedMode;
-    recordModeTime(current);
-    const next = current + 1;
-    const info = modeTransitions[current];
+    recordModeTime(selectedMode);
+    const next = selectedMode + 1;
     selectedMode = next;
-    const done = () => {
-      startGame(next);
-      transitioning = false;
-    };
-    if (info) {
-      showModeTransition(info, done);
-    } else {
-      done();
-    }
+    startGame(next);
+    transitioning = false;
   } else {
     recordModeTime(selectedMode);
     pastaAtual++;
     selectedMode = 1;
-    const done = () => {
-      updateLevelIcon();
-      startGame(1);
-      transitioning = false;
-    };
-    showModeTransition(levelUpTransition, done);
+    levelFrases = [];
+    levelLoaded = 0;
+    updateLevelIcon();
+    startGame(1);
+    transitioning = false;
   }
 }
 
