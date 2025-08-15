@@ -7,8 +7,20 @@ const pastas = {
   
 
 
-Eu te amo#I love you#Pizza
-Eu te adoro# I adore you#Pizza
+Eu sou#I am
+Eu penso#I think
+Eu sinto#I feel
+Eu gosto#I like
+Eu jogo#I play
+Eu vou#I go
+Eu leio#I read
+Eu corro#I run
+Eu como#I eat
+Eu danço#I dance
+Eu durmo#I sleep
+Eu escrevo#I write
+
+
 
 
 
@@ -6402,6 +6414,7 @@ Quase nenhum deles voltou#Scarcely any of them came back
 
 
 }
+
 
 
 
