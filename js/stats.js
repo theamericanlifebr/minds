@@ -98,34 +98,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const stats = statsData[mode] || {};
     const total = stats.totalPhrases || 0;
     const correct = stats.correct || 0;
-    const report = stats.report || 0;
     const timePts = stats.timePoints || 0;
     const accPerc = total ? (correct / total * 100) : 0;
     const ref = TIME_POINT_REFS[mode] || 100;
     let timePerc = total ? ((timePts / total) / ref) * 100 : 0;
     timePerc *= SPEED_SCALE;
-    const reportPerc = total ? 100 - (report / total * 100) : 100;
-    return { accPerc, timePerc, reportPerc };
+    return { accPerc, timePerc };
   }
 
   function calcGeneralStats() {
-    const modes = [2, 3, 4, 5, 6];
-    let totalPhrases = 0, totalCorrect = 0, totalReport = 0;
-    let totalTimePts = 0, totalRef = 0;
+      const modes = [2, 3, 4, 5, 6];
+      let totalPhrases = 0, totalCorrect = 0;
+      let totalTimePts = 0, totalRef = 0;
     modes.forEach(m => {
       const s = statsData[m] || {};
       const phrases = s.totalPhrases || 0;
       totalPhrases += phrases;
       totalCorrect += s.correct || 0;
-      totalReport += s.report || 0;
-      totalTimePts += s.timePoints || 0;
-      totalRef += phrases * (TIME_POINT_REFS[m] || 100);
+        totalTimePts += s.timePoints || 0;
+        totalRef += phrases * (TIME_POINT_REFS[m] || 100);
     });
     const accPerc = totalPhrases ? (totalCorrect / totalPhrases * 100) : 0;
     let timePerc = totalRef ? (totalTimePts / totalRef) * 100 : 0;
     timePerc *= SPEED_SCALE;
-    const reportPerc = totalPhrases ? 100 - (totalReport / totalPhrases * 100) : 100;
-    return { accPerc, timePerc, reportPerc };
+    return { accPerc, timePerc };
   }
 
   function startVersus(name, mode) {
@@ -177,15 +173,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       container.innerHTML = '';
       if (mode === 1) {
-        const { accPerc, timePerc, reportPerc } = calcGeneralStats();
+        const { accPerc, timePerc } = calcGeneralStats();
         container.appendChild(createStatBar(accPerc, 'Precisão'));
         container.appendChild(createStatBar(timePerc, 'Tempo'));
-        container.appendChild(createStatBar(reportPerc, 'Report'));
       } else {
-        const { accPerc, timePerc, reportPerc } = calcModeStats(mode);
+        const { accPerc, timePerc } = calcModeStats(mode);
         container.appendChild(createStatBar(accPerc, 'Precisão'));
         container.appendChild(createStatBar(timePerc, 'Tempo'));
-        container.appendChild(createStatBar(reportPerc, 'Report'));
       }
       container.style.opacity = 1;
     }, 150);
