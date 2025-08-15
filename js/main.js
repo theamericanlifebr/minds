@@ -267,162 +267,13 @@ function modo1Correto(resp, esp) {
 }
 
 
-let reconhecimento;
-let reconhecimentoAtivo = false;
-let reconhecimentoRodando = false;
-let listeningForCommand = false;
 const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 let allowInput = true;
-let silenceTimer;
-let awaitingTap = false;
 let pausedBySilence = false;
 const secretSequence = [4, 5, 4, 4, 4];
 let inputSequence = [];
 let dropdownUnlocked = false;
 
-if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  reconhecimento = new SpeechRecognition();
-  reconhecimento.lang = 'en-US';
-  reconhecimento.continuous = true;
-  reconhecimento.interimResults = false;
-
-  reconhecimento.onstart = () => {
-    reconhecimentoRodando = true;
-    resetSilenceTimer();
-  };
-
-  reconhecimento.onresult = (event) => {
-    resetSilenceTimer();
-    const transcript = event.results[event.results.length - 1][0].transcript.trim();
-    const normCmd = transcript.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    if (ilifeActive) {
-      if (normCmd.includes('play')) {
-        ilifeActive = false;
-        localStorage.setItem('ilifeDone', 'true');
-        const screen = document.getElementById('ilife-screen');
-        const menu = document.getElementById('menu');
-        if (screen) screen.style.display = 'none';
-        if (menu) menu.style.display = 'flex';
-        if (!tutorialDone) {
-          startTutorial();
-        }
-      }
-      return;
-    }
-    if (awaitingNextLevel) {
-      if (normCmd.includes('level') || normCmd.includes('next') || normCmd.includes('game')) {
-          awaitingNextLevel = false;
-          if (nextLevelCallback) {
-            const cb = nextLevelCallback;
-            nextLevelCallback = null;
-            cb();
-          }
-        }
-      } else if (awaitingRetry && (normCmd.includes('try again') || normCmd.includes('tentar de novo'))) {
-        awaitingRetry = false;
-        if (retryCallback) {
-          const cb = retryCallback;
-          retryCallback = null;
-          cb();
-        }
-      } else if (normCmd.includes('next level') || normCmd.includes('proximo nivel')) {
-        points += 25115;
-        saveTotals();
-        atualizarBarraProgresso();
-        const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
-        if (points >= threshold && !completedModes[selectedMode]) {
-          finishMode();
-        }
-      } else if (listeningForCommand) {
-        if (normCmd.includes('play')) {
-          listeningForCommand = false;
-          startGame(getHighestUnlockedMode());
-        }
-      } else {
-        if (normCmd.includes('pause') || normCmd.includes('pausa')) {
-          pauseGame();
-        } else if (
-          normCmd.includes('reportar') ||
-          normCmd.includes('report') ||
-          normCmd.includes('my star') ||
-          normCmd.includes('mystar') ||
-          normCmd.includes('estrela')
-        ) {
-          reportLastError();
-        } else {
-          document.getElementById("pt").value = transcript;
-          verificarResposta();
-        }
-      }
-    };
-
-    reconhecimento.onerror = (event) => {
-      console.error('Erro no reconhecimento de voz:', event.error);
-      if (event.error === 'not-allowed') alert('Permissão do microfone negada.');
-    };
-
-    reconhecimento.onend = () => {
-      reconhecimentoRodando = false;
-      if (reconhecimentoAtivo) reconhecimento.start();
-    };
-
-    const micBtn = document.getElementById('mic-button');
-    if (micBtn) micBtn.style.display = 'none';
-} else {
-  const micBtn = document.getElementById('mic-button');
-  if (micBtn) micBtn.style.display = 'none';
-  alert('Reconhecimento de voz não é suportado neste navegador. Use o Chrome.');
-}
-
-function resetSilenceTimer() {
-  if (!isMobile || !reconhecimentoAtivo) return;
-  if (silenceTimer) clearTimeout(silenceTimer);
-  silenceTimer = setTimeout(handleSilence, 5900);
-}
-
-function handleSilence() {
-  if (!isMobile) return;
-  if (silenceTimer) clearTimeout(silenceTimer);
-  awaitingTap = true;
-  pausedBySilence = true;
-  pauseGame(true);
-  const texto = document.getElementById('texto-exibicao');
-  if (texto) {
-    texto.style.transition = 'opacity 500ms linear';
-    texto.style.opacity = '1';
-    texto.textContent = 'Toque para ativar';
-  }
-  const micBtn = document.getElementById('mic-button');
-  if (micBtn) {
-    micBtn.style.display = 'flex';
-    micBtn.style.opacity = '0.5';
-  }
-}
-
-function handleTapResume(e) {
-  if (!isMobile || !awaitingTap) return;
-  e.preventDefault();
-  awaitingTap = false;
-  const micBtn = document.getElementById('mic-button');
-  if (micBtn) {
-    micBtn.style.display = 'none';
-    micBtn.style.opacity = '1';
-  }
-  resumeGame();
-}
-
-const micBtnGlobal = document.getElementById('mic-button');
-if (micBtnGlobal) {
-  micBtnGlobal.addEventListener('touchstart', handleTapResume);
-  micBtnGlobal.addEventListener('click', handleTapResume);
-}
-
-setInterval(() => {
-  if (reconhecimento && reconhecimentoAtivo && !reconhecimentoRodando) {
-    try { reconhecimento.start(); } catch (e) {}
-  }
-}, 4000);
 
 let frasesArr = [], fraseIndex = 0;
 let acertosTotais = parseInt(localStorage.getItem('acertosTotais') || '0', 10);
@@ -435,7 +286,6 @@ let voz = 'en';
 let esperadoLang = 'pt';
 let timerInterval = null;
 let inputTimeout = null;
-let lastExpected = '', lastInput = '', lastFolder = 1;
 const TOTAL_FRASES = 25;
 let selectedMode = 1;
 // Removed difficulty selection; game always starts on easy mode
@@ -503,9 +353,6 @@ if (legacyStats && !modeStats[1]) {
   localStorage.setItem('modeStats', JSON.stringify(modeStats));
 }
 let modeStartTimes = {};
-let lastWasError = false;
-let lastReward = 0;
-let lastPenalty = 0;
 let paused = false;
 let consecutiveErrors = 0;
 let pauseInterval = null;
@@ -560,30 +407,16 @@ function toggleTheme() {
   localStorage.setItem('themeIndex', themeIndex);
 }
 
-const reportClickHandler = () => {
-  if (downPlaying) handleReportClick();
-};
-const levelStar = document.getElementById('nivel-indicador');
-if (levelStar) levelStar.addEventListener('click', reportClickHandler);
-const modeLogo = document.getElementById('mode-icon');
-if (modeLogo) {
-  modeLogo.style.opacity = '0.5';
-  modeLogo.addEventListener('click', () => {
-    if (!reconhecimento) return;
-    if (reconhecimentoRodando) {
-      reconhecimentoAtivo = false;
-      reconhecimento.stop();
-      modeLogo.style.opacity = '0.5';
-    } else {
-      reconhecimentoAtivo = true;
-      try { reconhecimento.start(); } catch (e) {}
-      modeLogo.style.opacity = '1';
-      if (isMobile) resetSilenceTimer();
-    }
+const phraseDisplay = document.getElementById('texto-exibicao');
+if (phraseDisplay) {
+  phraseDisplay.addEventListener('click', togglePt);
+  phraseDisplay.addEventListener('dblclick', () => {
+    if (!frasesArr[fraseIndex]) return;
+    const [, ensRaw] = frasesArr[fraseIndex];
+    const ens = Array.isArray(ensRaw) ? ensRaw[0] : String(ensRaw).split('#')[0].trim();
+    falar(ens, 'en');
   });
 }
-const phraseDisplay = document.getElementById('texto-exibicao');
-if (phraseDisplay) phraseDisplay.addEventListener('click', reportLastError);
 
 const modeImages = {
   1: 'selos%20modos%20de%20jogo/modo1.png',
@@ -624,13 +457,10 @@ function ensureModeStats(mode) {
       timePoints: 0,
       correct: 0,
       wrong: 0,
-      report: 0,
-      wrongRanking: [],
-      reportRanking: []
+      wrongRanking: []
     };
   } else {
     if (!Array.isArray(modeStats[mode].wrongRanking)) modeStats[mode].wrongRanking = [];
-    if (!Array.isArray(modeStats[mode].reportRanking)) modeStats[mode].reportRanking = [];
     if (typeof modeStats[mode].timePoints !== 'number') modeStats[mode].timePoints = 0;
   }
   return modeStats[mode];
@@ -677,14 +507,6 @@ function stopCurrentGame() {
     clearInterval(prizeTimer);
     prizeTimer = null;
   }
-  if (silenceTimer) {
-    clearTimeout(silenceTimer);
-    silenceTimer = null;
-  }
-  if (reconhecimento) {
-    reconhecimentoAtivo = false;
-    try { reconhecimento.stop(); } catch {}
-  }
   if (songAudio) {
     songAudio.pause();
   }
@@ -711,7 +533,6 @@ function pauseGame(noPenalty = true) {
 function resumeGame() {
   if (!paused) return;
   paused = false;
-  reconhecimentoAtivo = true;
   if (pauseInterval) {
     clearInterval(pauseInterval);
     pauseInterval = null;
@@ -766,43 +587,6 @@ function triggerDownPlay() {
   }, 4000);
 }
 
-function handleReportClick() {
-  if (!downPlaying) return;
-  reportLastError();
-}
-
-function reportLastError() {
-  if (!lastWasError) return;
-  lastWasError = false;
-  consecutiveErrors = 0;
-  const audio = new Audio('gamesounds/report.wav');
-  audio.play();
-  acertosTotais++;
-  errosTotais = Math.max(0, errosTotais - 1);
-  points += lastReward + lastPenalty;
-  saveTotals();
-  atualizarBarraProgresso();
-  const stats = ensureModeStats(selectedMode);
-  stats.correct++;
-  stats.wrong = Math.max(0, stats.wrong - 1);
-  stats.report++;
-  const totals = Object.values(modeStats).reduce((acc, s) => {
-    acc.report += s.report || 0;
-    acc.total += s.totalPhrases || 0;
-    return acc;
-  }, { report: 0, total: 0 });
-  const level = totals.total ? ((totals.report / totals.total) * 100).toFixed(2) : '0';
-  stats.reportRanking.push({ expected: lastExpected, input: lastInput, folder: lastFolder, level });
-  saveModeStats();
-  if (downPlaying) {
-    downPlaying = false;
-    if (downTimeout) {
-      clearTimeout(downTimeout);
-      downTimeout = null;
-    }
-    resumeGame();
-  }
-}
 
 function updateLevelIcon() {
   const icon = document.getElementById('nivel-indicador');
@@ -1007,7 +791,6 @@ function calcModeStats(mode) {
   const stats = modeStats[mode] || {};
   const total = stats.totalPhrases || 0;
   const correct = stats.correct || 0;
-  const report = stats.report || 0;
   const totalTime = stats.totalTime || 0;
   const timePts = stats.timePoints || 0;
   const accPerc = total ? (correct / total * 100) : 0;
@@ -1015,8 +798,7 @@ function calcModeStats(mode) {
   const ref = TIME_POINT_REFS[mode] || 100;
   let timePerc = total ? ((timePts / total) / ref) * 100 : 0;
   timePerc *= SPEED_SCALE;
-  const notReportPerc = total ? (100 - (report / total * 100)) : 100;
-  return { accPerc, timePerc, avg, notReportPerc };
+  return { accPerc, timePerc, avg };
 }
 
 
@@ -1089,15 +871,10 @@ async function startGame(modo) {
   saveTotals();
   atualizarBarraProgresso();
   updateModeIcons();
-  listeningForCommand = false;
   document.getElementById('menu').style.display = 'none';
   document.getElementById('visor').style.display = 'none';
   const icon = document.getElementById('mode-icon');
   if (icon) icon.style.display = 'none';
-  if (reconhecimento) {
-    reconhecimentoAtivo = false;
-    reconhecimento.stop();
-  }
   const start = () => beginGame();
   if (!modeIntroShown[modo]) {
     if (modo === 1) {
@@ -1191,10 +968,6 @@ function showModeTransition(info, callback) {
   const img = document.getElementById('intro-image');
   const audio = document.getElementById(info.audio);
   atualizarBarraProgresso();
-  if (reconhecimento) {
-    reconhecimentoAtivo = false;
-    reconhecimento.stop();
-  }
   img.src = info.img;
   img.style.animation = 'none';
   img.style.transition = 'none';
@@ -1324,13 +1097,7 @@ function beginGame() {
     if (selectedMode === 9) {
       setupMode9();
     }
-    if (reconhecimento) {
-      if (selectedMode === 1) {
-        reconhecimento.lang = 'en-US';
-      } else {
-        reconhecimento.lang = esperadoLang === 'pt' ? 'pt-BR' : 'en-US';
-      }
-    }
+    
     carregarFrases();
   };
 
@@ -1464,11 +1231,6 @@ function mostrarFrase() {
   if (selectedMode >= 2) {
     inputTimeout = setTimeout(handleNoInput, 6000);
   }
-  if (reconhecimento) {
-    reconhecimentoAtivo = true;
-    try { reconhecimento.start(); } catch (e) {}
-    if (isMobile) resetSilenceTimer();
-  }
 }
 
 function flashSuccess(callback) {
@@ -1516,38 +1278,12 @@ function verificarResposta() {
   if (timerInterval) clearInterval(timerInterval);
   const input = document.getElementById("pt");
   const resposta = input.value.trim();
-  const cheat = /^GOTO(\d+)$/i.exec(resposta);
-  if (cheat) {
-    const nivel = parseInt(cheat[1], 10);
-    if (pastas[nivel]) {
-      pastaAtual = nivel;
-      updateLevelIcon();
-      carregarFrases();
-    }
-    input.value = "";
-    return;
-  }
-  const bonusPhrase = resposta.toLowerCase().replace(/\s+/g, '');
-  if (bonusPhrase === 'Justiça de Deus' || bonusPhrase === 'getpointslife') {
-    points += 25115;
-    saveTotals();
-    input.value = '';
-    atualizarBarraProgresso();
-    const threshold = selectedMode === 6 ? MODE6_THRESHOLD : COMPLETION_THRESHOLD;
-    if (points >= threshold && !completedModes[selectedMode]) {
-      finishMode();
-    }
-    return;
-  }
   const resultado = document.getElementById("resultado");
   tentativasTotais++;
   saveTotals();
   const elapsed = Date.now() - prizeStart;
   const premioAtual = premioBase;
   const penalty = 0;
-  lastReward = premioAtual;
-  lastPenalty = penalty;
-  lastWasError = false;
 
   const stats = ensureModeStats(selectedMode);
 
@@ -1642,11 +1378,7 @@ function verificarResposta() {
     saveModeStats();
     document.getElementById("somErro").play();
     errosTotais++;
-    lastExpected = expectedPhrase;
-    lastInput = resposta;
-    lastFolder = pastaAtual;
     saveTotals();
-    lastWasError = true;
     resultado.textContent = "";
     resultado.style.color = "red";
     input.value = '';
@@ -1658,25 +1390,8 @@ function verificarResposta() {
     flashError(esperado, () => {
       input.disabled = false;
       bloqueado = false;
-      const micBtn = document.getElementById('mic-button');
-      if (micBtn) {
-        micBtn.style.display = 'flex';
-        micBtn.style.opacity = '0.5';
-      }
-      const texto = document.getElementById('texto-exibicao');
-      if (texto) {
-        texto.style.opacity = '1';
-        texto.textContent = 'toque para continuar';
-      }
-      awaitingTap = true;
-      pausedBySilence = selectedMode === 1 && consecutiveErrors < 2;
-      if (!(selectedMode === 1 && consecutiveErrors < 2)) {
-        consecutiveErrors = 0;
-      }
-      pauseGame(true);
-      if (selectedMode === 7) {
-        atualizarBarraProgresso();
-      }
+      if (selectedMode === 7) atualizarBarraProgresso();
+      continuar();
     });
     if (selectedMode === 7) {
       acertosModo7 = 0;
@@ -1717,7 +1432,7 @@ function atualizarBarraProgresso() {
     updateGradientColor(barColor);
     const icon = document.getElementById('mode-icon');
     if (icon) {
-      icon.style.opacity = reconhecimentoAtivo ? '1' : '0.5';
+      icon.style.opacity = '1';
     }
     return;
   }
@@ -1731,7 +1446,7 @@ function atualizarBarraProgresso() {
   updateGradientColor(barColor);
   const icon = document.getElementById('mode-icon');
   if (icon) {
-    icon.style.opacity = reconhecimentoAtivo ? '1' : '0.5';
+    icon.style.opacity = '1';
   }
 }
 
@@ -1759,9 +1474,8 @@ function finishMode() {
     const acc = total ? (stats6.correct / total * 100).toFixed(2) : '0';
     const avgPts = total ? (stats6.timePoints / total) : 0;
     const speedPerc = ((avgPts / (TIME_POINT_REFS[6] || 100)) * 100) * SPEED_SCALE;
-    const reportPerc = total ? (stats6.report / total * 100).toFixed(2) : '0';
     const details = JSON.parse(localStorage.getItem('levelDetails') || '[]');
-    details.push({ level: pastaAtual + 1, accuracy: acc, speed: speedPerc.toFixed(2), reports: reportPerc, scaled: true });
+    details.push({ level: pastaAtual + 1, accuracy: acc, speed: speedPerc.toFixed(2), scaled: true });
     localStorage.setItem('levelDetails', JSON.stringify(details));
     document.querySelectorAll('#menu-modes img[data-mode="6"], #mode-buttons img[data-mode="6"]').forEach(img => {
       img.src = 'selos%20modos%20de%20jogo/modostar.png';
@@ -1825,11 +1539,6 @@ function goHome() {
   document.getElementById('menu').style.display = 'flex';
   const icon = document.getElementById('mode-icon');
   if (icon) icon.style.display = 'none';
-  if (reconhecimento) {
-    reconhecimentoAtivo = false;
-    try { reconhecimento.stop(); } catch (e) {}
-  }
-  listeningForCommand = false;
   updateModeIcons();
 }
 
@@ -1992,9 +1701,7 @@ async function initGame() {
     });
   }
 
-  if (reconhecimento) {
-    reconhecimento.lang = 'en-US';
-  }
+
 
   document.addEventListener('keydown', e => {
     if (ilifeActive && e.code === 'Space') {
@@ -2012,24 +1719,6 @@ async function initGame() {
     }
     if (e.key === 'r') falarFrase();
     if (e.key.toLowerCase() === 'h') toggleDarkMode();
-    if (e.key.toLowerCase() === 'i') {
-      const [pt, ens] = frasesArr[fraseIndex] || ['', []];
-      const esperado = esperadoLang === 'pt' ? pt : ens[0];
-      document.getElementById('pt').value = esperado;
-      verificarResposta();
-      return;
-    }
-    if (e.key.toLowerCase() === 'l') {
-      if (reconhecimento) {
-        reconhecimentoAtivo = false;
-        reconhecimento.stop();
-      }
-      clearInterval(timerInterval);
-      clearInterval(prizeTimer);
-      pastaAtual++;
-      updateLevelIcon();
-      beginGame();
-    }
   });
 }
 
@@ -2044,19 +1733,19 @@ async function initGame() {
         goHome();
       });
     }
-    if (isMobile && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(track => track.stop());
-      } catch (err) {
-        console.error('Erro ao habilitar microfone:', err);
-      }
-    }
     await initGame();
     document.addEventListener('keydown', e => {
       if (e.key === 'ArrowRight') setModePage(2);
       if (e.key === 'ArrowLeft') setModePage(1);
     });
+    const handleFeedback = correct => {
+      const input = document.getElementById('pt');
+      const [pt, ensRaw] = frasesArr[fraseIndex] || ['', []];
+      const ens = Array.isArray(ensRaw) ? ensRaw : String(ensRaw).split('#').map(s => s.trim()).filter(Boolean);
+      const esperado = esperadoLang === 'pt' ? pt : ens[0];
+      input.value = correct ? esperado : ' ';
+      verificarResposta();
+    };
     if (isMobile) {
       let startX = 0, startY = 0;
       document.addEventListener('touchstart', e => {
@@ -2068,29 +1757,15 @@ async function initGame() {
         const t = e.changedTouches[0];
         const dx = t.screenX - startX;
         const dy = t.screenY - startY;
-        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-          const menuEl = document.getElementById('menu');
-          const menuVisible = menuEl && menuEl.style.display !== 'none';
-          if (menuVisible) {
-            if (dx < 0) setModePage(2);
-            else setModePage(1);
-          } else if (selectedMode === 8) {
-            if (dx < 0) seekSong(-5);
-            else seekSong(5);
-          } else if (dx > 0) {
-            toggleTheme();
-          } else {
-            reportLastError();
-          }
-        } else if (Math.abs(dy) > 50 && dy < 0) {
-          if (reconhecimento) {
-            reconhecimentoAtivo = true;
-            try { reconhecimento.start(); } catch (err) {}
-            resetSilenceTimer();
-          }
+        if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 30) {
+          handleFeedback(dy < 0);
         }
       });
     }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp') handleFeedback(true);
+      if (e.key === 'ArrowDown') handleFeedback(false);
+    });
     const tapArea = document.getElementById('ilife-screen');
     if (tapArea) {
       let tapCount = 0;
