@@ -626,10 +626,10 @@ const timeGoals = {1:1.8, 2:2.2, 3:2.2, 4:3.0, 5:3.5, 6:2.0};
 const MAX_TIME = 6.0;
 const ALL_MODES = [1, 2, 3, 4, 5, 6];
 const DURATION_ANCHORS = [
-  { length: 5, offset: -2200 },
+  { length: 5, offset: -700 },
   { length: 18, offset: 0 },
-  { length: 24, offset: 500 },
-  { length: 30, offset: 1000 }
+  { length: 24, offset: 300 },
+  { length: 30, offset: 5000 }
 ];
 
 function setMicrophoneSpeechState(active, token = null) {
